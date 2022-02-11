@@ -7,13 +7,15 @@ import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
 import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.entities.OtherUser
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
-import com.chat_soon_e.re_chat.ui.View.addChatView
+import com.chat_soon_e.re_chat.ui.view.AddChatView
 import com.chat_soon_e.re_chat.utils.getID
 import java.io.File
 import java.io.FileNotFoundException
@@ -22,72 +24,102 @@ import java.io.IOException
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.M)
-class MyNotificationListener: NotificationListenerService(), addChatView {
-    private lateinit var chatDB: AppDatabase
-    val TAG = "NotifiLog"
+class MyNotificationListener: NotificationListenerService(), AddChatView {
     private lateinit var database: AppDatabase
-    private val userID=getID()
+    private var userID = getID()
+    private val tag = "ACT/SPLASH"
+
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        Log.d(TAG, "onListenerConnected")
+        Log.d("Notif", "onListenerConnected")
+        Log.d("userID", userID.toString())
     }
-
     // 새로운 알림 올 때마다 발생한다.
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+        if(userID.toInt()==-1){
+            if(AppDatabase.getInstance(this)!!.userDao().getUsers()==null)
+                Log.d(tag, "login error, 잘못된 접근")
+            else
+                userID = AppDatabase.getInstance(this)!!.userDao().getUsers()?.get(0)?.kakaoUserIdx!!
+        }
         super.onNotificationPosted(sbn)
         val notification: Notification = sbn.notification
-        val packageName:String=sbn.packageName
+        val packageName: String = sbn.packageName
 
         if(packageName != null && packageName == "com.kakao.talk") {
             // 데이터베이스 연결
-            chatDB = AppDatabase.getInstance(this)!!
+            database = AppDatabase.getInstance(this)!!
             val extras = sbn.notification.extras
-            val name = extras.getString(Notification.EXTRA_TITLE)//발신자
-            val text = extras.getCharSequence(Notification.EXTRA_TEXT)//내용
-            val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)//그룹톡일 경우
-            //postTime, mill->Date 변환
+            val name = extras.getString(Notification.EXTRA_TITLE)   // 발신자
+            val text = extras.getCharSequence(Notification.EXTRA_TEXT)  // 내용
+            val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)   // 그룹톡일 경우
+
+            // postTime, mill -> Date 변환
             val millisecond = sbn.postTime
             val date = Date(millisecond)
-            //Icon, cache에 png 전환 후 저장
+
+            // Icon, cache에 png 전환 후 저장
             val largeIcon: Icon? = notification.getLargeIcon()
 
-            //알림 메세지(264개의 메세지 등) 제외 대화 내용 DB 저장
-            //음악 메세지(id==2016) 차단
+            // 알림 메세지(264개의 메세지 등) 제외 대화 내용 DB 저장
+            // 음악 메세지(id==2016) 차단
             if(name!=null && sbn.id!=2016){
+                val otherUser = database.otherUserDao().getOtherUserByNameId(name.toString(), userID)
 
-                database= AppDatabase.getInstance(this)!!
-                var otherUser=database.otherUserDao().getOtherUserByNameId(name.toString(), userID)
-                //이미 있던 유저인지 확인
+                // //이미 있던 유저인지 확인
+                if(otherUser != null) {
+                    val chat = Chat(otherUser.otherUserIdx, subText.toString(),text.toString(), date, -1, ACTIVE)
 
-                //TEST
-                if(otherUser!=null){
-                    val chat=Chat(otherUser.otherUserIdx, subText.toString(),text.toString(), date, -1, "activate")
-                    //이미 있던 유저라면
-                    var blocked:String?
-                    if(subText==null){
-                        //갠톡이라면
-                        if(database.otherUserDao().checkOneBlock(userID, otherUser.otherUserIdx)==null)
+                    // Server API: 채팅 추가하기
+                    val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(otherUser.nickname, subText.toString(), null, text.toString(), date)
+                    val chatService = ChatService()
+                    chatService.addChat(this, userID, remoteChat)
+
+                    // 이미 있던 유저라면
+                    var blocked: String?
+                    if(subText == null) {
+                        // 갠톡이라면
+                        if(database.otherUserDao().checkOneBlock(userID, otherUser.otherUserIdx) == null) {
                             database.chatDao().insert(chat)
-                    }else{
-                        //단톡이라면
-                        if(database.otherUserDao().checkOrgBlock(userID, subText.toString())==null)
+                        }
+                    } else{
+                        // 단톡이라면
+                        if(database.otherUserDao().checkOrgBlock(userID, subText.toString()) == null) {
                             database.chatDao().insert(chat)
+                        }
                     }
                 }
                 else{
-                    //새로운 유저라면 일단 그냥 넣기, 차단이 됬는지 안됬는지 어떻게 알아?새로운 유저인데!
-                    var fileName:String=""
-                    if(largeIcon!=null){
-                        fileName=saveCache(convertIconToBitmap(largeIcon), name+"_"+millisecond.toString())
-                        database.otherUserDao().insert(OtherUser(name.toString(), fileName, "activate", userID))
-                        val other=database.otherUserDao().getOtherUserByNameId(name.toString(), userID)
-                        database.chatDao().insert(Chat(other!!.otherUserIdx, subText.toString(),text.toString(), date, -1, "activate"))
+                    // 새로운 유저라면 일단 그냥 넣기, 차단이 됬는지 안됬는지 어떻게 알아? 새로운 유저인데!
+                    var fileName = ""
+                    val other: OtherUser
+
+                    if(largeIcon != null) {
+                        fileName = saveCache(convertIconToBitmap(largeIcon), name + "_" + millisecond.toString())
+                        database.otherUserDao().insert(OtherUser(name.toString(), fileName, ACTIVE, userID))
+                        other = database.otherUserDao().getOtherUserByNameId(name.toString(), userID)!!
+                        database.chatDao().insert(Chat(other.otherUserIdx, subText.toString(),text.toString(), date, -1, ACTIVE))
+
+                        // Server API: 채팅 추가하기
+                        val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), date)
+                        val chatService = ChatService()
+                        chatService.addChat(this, userID, remoteChat)
+                    } else {
+                        database.otherUserDao().insert(OtherUser(name.toString(), null, ACTIVE, userID))
+                        other = database.otherUserDao().getOtherUserByNameId(name.toString(), userID)!!
+                        database.chatDao().insert(Chat(other.otherUserIdx, subText.toString(),text.toString(), date, -1, ACTIVE))
+
+                        // Server API: 채팅 추가하기
+                        val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), null, text.toString(), date)
+                        val chatService = ChatService()
+                        chatService.addChat(this, userID, remoteChat)
                     }
                 }
             }
+
             Log.d(
-                TAG, "onNotificationPosted ~ " +
+                "Notif", "onNotificationPosted ~ " +
                         " id: " + sbn.id +
                         " name: " + name +
                         " text : " + text
@@ -103,6 +135,7 @@ class MyNotificationListener: NotificationListenerService(), addChatView {
         val bitmap=drawable.toBitmap()
         return bitmap
     }
+
     //Bitmap을 캐시 디렉토리에 저장, 파일 이름 저장
     private fun saveCache(bitmap:Bitmap, name:String):String{
         val storage=cacheDir//cacheDir 경로
@@ -121,19 +154,19 @@ class MyNotificationListener: NotificationListenerService(), addChatView {
         return name
     }
 
+    // 채팅 넣어주는 걸 성공한 경우
     override fun onAddChatSuccess() {
-        //채팅 넣어주는게 성공하면 끝
-        Log.d("NotifServer", "Complete")
+        // 채팅 넣어주는게 성공하면 끝
+        Log.d("NotifServer", "complete")
+        Log.d("MYNOTIFICATION", "onAddChatSuccess()")
     }
 
-    override fun onAddChatFailure(code: Int, message: String) {
+    // 실패한 경우
+   override fun onAddChatFailure(code: Int, message: String) {
         when(code){
-            2100 -> {
-                Log.d("NotifServer", message)
-            }
-            2202->{
-                Log.d("NotifServer", message)
-            }
+            2100 -> Log.d("NotifServer", message)
+            2202 -> Log.d("NotifServer", message)
+            else -> Log.d("NotifyServer", "else")
         }
     }
 }

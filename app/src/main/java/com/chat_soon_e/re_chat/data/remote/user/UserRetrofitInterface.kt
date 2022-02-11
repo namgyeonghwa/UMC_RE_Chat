@@ -4,9 +4,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface UserRetrofitInterface {
-
-    //유저 추가하기
+    // 카카오 회원 추가하기
     @POST("/app/users/user")
-    fun addUser(@Body kakaoUserIdx:Long):Call<UserResponse>
-
+    fun addKakaoUser(@Body kakaoUserIdx: Long): Call<UserResponse>
 }

@@ -188,7 +188,8 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
             Log.d("chatNameRVA", chat.nickName.toString())
             binding.itemChatDefaultNameTv.text = chat.nickName
             binding.itemChatDefaultMessageTv.text = chat.message
-            binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!)
+//            binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!)
+            binding.itemChatDefaultDateTimeTv.text = chat.postTime
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
         }
@@ -209,7 +210,8 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
             Log.d("chatNameRVA", chat.nickName.toString())
             binding.itemChatChooseNameTv.text = chat.nickName
             binding.itemChatChooseMessageTv.text = chat.message
-            binding.itemChatChooseDateTimeTv.text = dateToString(chat.postTime!!)
+//            binding.itemChatChooseDateTimeTv.text = dateToString(chat.postTime!!)
+            binding.itemChatChooseDateTimeTv.text = chat.postTime
             binding.itemChatChooseProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
         }
     }

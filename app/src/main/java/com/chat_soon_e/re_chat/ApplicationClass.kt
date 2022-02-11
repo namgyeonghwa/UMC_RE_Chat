@@ -21,19 +21,19 @@ import java.util.concurrent.TimeUnit
 // 따라서 다른 파일에서도 이 안에 정의된 상수, 변수, 메소드 등을 전체적으로 가져와서 활용할 수 있다.
 class ApplicationClass : Application() {
     companion object{
-        const val X_ACCESS_TOKEN: String = "X-ACCESS-TOKEN"         // JWT Token Key
+        const val X_ACCESS_TOKEN: String = "X-ACCESS-TOKEN" // JWT Token Key
         const val USER_INFO:String="USER_LOGIN_INFO"
 
         // TEMPLATE: Project명
         // Log, SharedPreference
-        const val TAG: String = "TEMPLATE-APP"
+        const val TAG: String = "RE:CHAT-APP"
 
         // DB: 데이터베이스명
         const val APP_DATABASE = "$TAG-DB"
 
-        const val DEV_URL: String = "https://api.template.com/";       // 테스트 서버 주소
-        const val PROD_URL: String = "https://api.template.com/"    // 실서버 주소
-        const val BASE_URL: String = DEV_URL                      // apk 추출할 때 알맞게 바꾸면[넣어주면] 된다.
+        const val DEV_URL: String = "";    // 테스트 서버 주소
+        const val PROD_URL: String = ""    // 실서버 주소
+        const val BASE_URL: String = DEV_URL    // apk 추출할 때 알맞게 바꾸면[넣어주면] 된다.
 
         // DB: status
         const val ACTIVE: String = "ACTIVE"
@@ -45,7 +45,6 @@ class ApplicationClass : Application() {
         // 전체적으로 쓰일 수 있도록
         lateinit var mSharedPreferences: SharedPreferences
         lateinit var retrofit: Retrofit
-
 
         //캐시 저장소로부터 이미지 불러오기
         //추후 진짜 캐시를 사용해 볼 것
@@ -109,5 +108,4 @@ class ApplicationClass : Application() {
 
         mSharedPreferences = applicationContext.getSharedPreferences(TAG, Context.MODE_PRIVATE)
     }
-
 }

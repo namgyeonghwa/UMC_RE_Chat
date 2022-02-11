@@ -17,7 +17,7 @@
         android:layout_marginStart="20dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-    
+
     <TextView
         android:id="@+id/main_title_tv"
         android:layout_width="wrap_content"
@@ -25,6 +25,7 @@
         android:text="@string/chat_list"
         android:textSize="34dp"
         android:textColor="@color/white"
+        android:textStyle="normal"
         android:layout_marginTop="40dp"
         android:layout_marginBottom="40dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -71,19 +72,19 @@
         app:layout_constraintTop_toBottomOf="@+id/main_title_tv"
         tools:listitem="@layout/item_chat_list_default" />
 
-<!--    <View-->
-<!--        android:id="@+id/main_bottom_bar_shadow_view"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="6dp"-->
-<!--        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"-->
-<!--        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"-->
-<!--        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"-->
-<!--        android:background="@drawable/shadow" />-->
+    <!--    <View-->
+    <!--        android:id="@+id/main_bottom_bar_shadow_view"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="6dp"-->
+    <!--        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"-->
+    <!--        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"-->
+    <!--        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"-->
+    <!--        android:background="@drawable/shadow" />-->
 
     <View
         android:id="@+id/main_bottom_bar_view"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -96,7 +97,7 @@
         android:layout_height="70dp"
         android:translationZ="8dp"
         android:background="@drawable/background_icon_folder"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toBottomOf="@+id/main_bottom_bar_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -109,8 +110,8 @@
         android:src="@null"
         android:padding="5dp"
         android:background="@drawable/selector_block_list"
-        app:layout_constraintTop_toTopOf="@+id/main_tranformation_layout"
-        app:layout_constraintBottom_toBottomOf="@+id/main_tranformation_layout"
+        app:layout_constraintTop_toTopOf="@+id/main_my_folder_iv"
+        app:layout_constraintBottom_toBottomOf="@+id/main_my_folder_iv"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/main_folder_background_view" />
 
@@ -182,28 +183,21 @@
         android:layout_height="30dp"
         android:src="@drawable/ic_baseline_block_24"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/main_folder_background_view"
+        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"
+        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintStart_toEndOf="@+id/main_folder_background_view"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 내폴더로 이동 -->
-    <com.skydoves.transformationlayout.TransformationLayout
-        android:id="@+id/main_tranformation_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:transformation_duration="550"
+    <ImageView
+        android:id="@+id/main_my_folder_iv"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@null"
+        android:background="@drawable/selector_my_folder"
         app:layout_constraintStart_toEndOf="@+id/main_folder_background_view"
-        app:layout_constraintBottom_toBottomOf="@id/main_folder_background_view"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ImageView
-            android:id="@+id/main_my_folder_iv"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:src="@null"
-            android:background="@drawable/selector_my_folder" />
-
-    </com.skydoves.transformationlayout.TransformationLayout>
+        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"
+        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <View
         android:id="@+id/main_my_folder_line_view"
@@ -211,7 +205,7 @@
         android:layout_height="2dp"
         android:background="#ADC7FF"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/main_tranformation_layout"
+        app:layout_constraintTop_toBottomOf="@+id/main_my_folder_iv"
         app:layout_constraintStart_toEndOf="@+id/main_folder_background_view"
         app:layout_constraintEnd_toStartOf="@+id/main_folder_background_view" />
 

@@ -3,7 +3,7 @@ package com.chat_soon_e.re_chat.ui
 import android.util.Log
 import android.widget.PopupMenu
 import com.chat_soon_e.re_chat.data.entities.Chat
-import com.chat_soon_e.re_chat.data.entities.FolderContent
+import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityFolderContentBinding
 import com.chat_soon_e.re_chat.utils.getID
@@ -13,7 +13,7 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     private lateinit var database: AppDatabase
     private lateinit var chatList: ArrayList<Chat>
     private lateinit var folderContentRVAdapter: FolderContentRVAdapter
-    lateinit var data: FolderContent
+    lateinit var data: Folder
     private val userID=getID()
 
 
@@ -30,37 +30,29 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
         if(intent.hasExtra("folderData")){
             var folderjson=intent.getStringExtra("folderData")
             var gson=Gson()
-            data=gson.fromJson(folderjson, FolderContent::class.java)
-            Log.d("folderContentData", data.toString())
-            val data=AppDatabase.getInstance(this)!!.folderDao().getFolderChats(getID(), data.folderIdx).observe(
-                this, {
-                   //= Log.d("folderContentData", it.toString())
-                }
-            )
+            data=gson.fromJson(folderjson, Folder::class.java)
         }
-
         // 폴더 이름으로 바인딩
-        binding.folderContentNameTv.text = database.folderDao().getFolderByIdx(data.folderIdx).folderName
+        binding.folderContentNameTv.text = data.folderName
     }
 
     private fun initRecyclerView() {
         database = AppDatabase.getInstance(this)!!
-        database.folderDao().getFolderChats(getID(), data.folderIdx).observe(
-            this, {
-                folderContentRVAdapter.addItem(it)
-            })
+        database.folderContentDao().getFolderChat(userID, data.idx).observe(
+            this
+        ) {
+            folderContentRVAdapter.addItem(it)
+        }
 
         folderContentRVAdapter = FolderContentRVAdapter(this, object: FolderContentRVAdapter.MyClickListener {
-            override fun onRemoveChat() {
+            override fun onRemoveChat(chatIdx:Int) {
                 // 채팅 삭제
-                database.folderContentDao().deleteChat(data.folderIdx, data.chatIdx)
+                database.folderContentDao().deleteChat(data.idx, chatIdx)
             }
-
             override fun onChatLongClick(popupMenu: PopupMenu) {
                 popupMenu.show()
             }
         })
-
         binding.folderContentRecyclerView.adapter = folderContentRVAdapter
     }
 

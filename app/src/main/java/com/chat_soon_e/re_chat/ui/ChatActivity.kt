@@ -166,8 +166,10 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     // 폴더로 보내기 팝업 윈도우
     @SuppressLint("InflateParams")
     private fun popupWindowToFolderMenu() {
-        folderList = database.folderDao().getFolderList() as ArrayList
-
+        database.folderDao().getFolderList(userID).observe(this){
+            folderList.clear()
+            folderList.addAll(it as ArrayList<Folder>)
+        }
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
         // 아이콘 16개 (기본)
         val size = windowManager.currentWindowMetricsPointCompat()
@@ -228,14 +230,16 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                     database.folderContentDao().insertChat(folderList[itemPosition].idx, i)
                 }
                 val TG="moveListcontent"
-                Log.d(TG, "해당 폴더 목록"+database.folderContentDao().getAllfolder().toString())
+                //Log.d(TG, "해당 폴더 목록"+database.folderContentDao().getAllfolder().toString())
 
                 // 팝업 윈도우를 꺼주는 역할
                 mPopupWindow.dismiss()
                 binding.chatBackgroundView.visibility = View.INVISIBLE
             }
         })
-        folderListRVAdapter.addFolderList(database.folderDao().getFolderExceptDeletedFolder(DELETED) as ArrayList)
+        database.folderDao().getFolderList(userID).observe(this){
+            folderListRVAdapter.addFolderList(it as ArrayList<Folder>)
+        }
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수

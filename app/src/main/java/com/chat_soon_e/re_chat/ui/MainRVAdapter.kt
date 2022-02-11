@@ -69,27 +69,24 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             }
         }
     }
-
     // selectedItemList 삭제
     @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("NotifyDataSetChanged")
     fun removeSelectedItemList() {
         val TG = "removeList"
         // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
-        val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
+        //val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
         val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
-        chatList = newChatList as ArrayList<ChatList>
+        //chatList = newChatList as ArrayList<ChatList>
         // DB 업데이트
-
         for(i in selectedList) {
-            if(i.groupName!=null){   // 개인톡일 경우
+            if(i.groupName=="null"){   // 개인톡일 경우
                 database.chatDao().deleteOneChat(i.chatIdx)
             }
             else{   // 단체 톡일 경우 chatName인 것들 다 삭제
-                database.chatDao().deleteOrgChat(userID, i.nickName!!)
+                database.chatDao().deleteOrgChat(userID, i.chatIdx)
             }
         }
-        Log.d(TG, "After delete Items" + database.chatDao().getChatIdxList().toString())
         notifyDataSetChanged()
     }
 
@@ -162,21 +159,16 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     fun addItem(chats: List<ChatList>){
         chatList.clear()
         chatList.addAll(chats as ArrayList)
+        Log.d("MAIN", "chatList in MainRVAdapter: $chatList")
         notifyDataSetChanged()
     }
 
     //선택된 chatIdx를 가져온다.
-    fun getSelectedItem():ArrayList<Int>{
+    fun getSelectedItem():ArrayList<ChatList>{
         //chatlist에서 checked 된 list들의 chatIdx를 저장하고 가져온다
         val TG="removeList"
-        var chatIdxList=ArrayList<Int>()
         val selectedList=chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
-
-        for(i in selectedList){
-            chatIdxList.add(i.chatIdx)
-        }
-        return chatIdxList
-        //선택된 item의 position을 이용해
+        return selectedList as ArrayList<ChatList>
     }
 
     // 디폴트 뷰홀더
@@ -199,9 +191,11 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.nickName
             Log.d("MAIN-RV", "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
+            binding.itemChatListDateTimeTv.text = chat.postTime
+            // 가공은 필요할듯
+//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
 
-            if(chat.isNew == 0) {
+            if(chat.isNew == 1) {
                 binding.itemChatListNewCv.visibility = View.VISIBLE
             }
             else {
@@ -234,7 +228,8 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.nickName
             Log.d("MAIN-RV", "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
+            binding.itemChatListDateTimeTv.text = chat.postTime
+//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
 
         }
     }

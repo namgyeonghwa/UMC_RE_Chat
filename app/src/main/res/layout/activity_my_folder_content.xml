@@ -79,7 +79,7 @@
             android:id="@+id/my_folder_background_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#40BFBFBF"
+            android:background="@color/background_gray"
             android:visibility="invisible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -87,7 +87,7 @@
     <View
         android:id="@+id/my_folder_bottom_bar_view"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -100,7 +100,7 @@
         android:layout_height="70dp"
         android:translationZ="8dp"
         android:background="@drawable/background_icon_folder"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toBottomOf="@+id/my_folder_bottom_bar_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -122,8 +122,8 @@
     <!-- 모든 채팅 -->
     <ImageView
         android:id="@+id/my_folder_all_chat_iv"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:src="@null"
         android:translationZ="2dp"
         android:background="@drawable/selector_all_chat"
@@ -135,10 +135,11 @@
     <!-- 숨긴 폴더 목록으로 -->
     <ImageView
         android:id="@+id/my_folder_to_hidden_folder_iv"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:src="@drawable/ic_hidden_folder"
-        app:layout_constraintBottom_toBottomOf="@+id/my_folder_background_bottom_view"
+        app:layout_constraintTop_toTopOf="@+id/my_folder_bottom_bar_view"
+        app:layout_constraintBottom_toBottomOf="@+id/my_folder_bottom_bar_view"
         app:layout_constraintStart_toEndOf="@+id/my_folder_background_bottom_view"
         app:layout_constraintEnd_toEndOf="parent" />
 

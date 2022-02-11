@@ -10,10 +10,11 @@ import java.io.Serializable
 // 폴더 정보를 담은 데이터
 @Entity(tableName = "FolderTable")
 data class Folder(
-    @PrimaryKey(autoGenerate = false) @SerializedName("folderIdx") var idx: Int = 0,
     @SerializedName("kakaoUserIdx") var kakaoUserIdx: Long = 0,
-    @SerializedName("parentFolderIdx") var parentFolderIdx: Int?,
     @SerializedName("folderName") var folderName: String,
-    @SerializedName("folderImg") var folderImg: Int = R.drawable.ic_baseline_folder_24,
-    @SerializedName("status") var status: String
-):Serializable
+    @SerializedName("folderImg") var folderImg: Int = R.drawable.ic_baseline_folder_24
+):Serializable{
+    @PrimaryKey(autoGenerate = true) @SerializedName("folderIdx") var idx: Int = 0
+    @SerializedName("status") var status: String="ACTIVE"
+    @SerializedName("parentFolderIdx") var parentFolderIdx: Int?=0
+}

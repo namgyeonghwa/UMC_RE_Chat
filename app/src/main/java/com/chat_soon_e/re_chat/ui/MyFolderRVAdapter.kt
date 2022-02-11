@@ -64,12 +64,12 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
                 when (item?.itemId) {
                     R.id.popup_folder_edit_menu_1 -> {
                         // 이름 바꾸기
-                        mContext.changeFolderName(holder.binding)
+                        mContext.changeFolderName(holder.binding, folderList[position].idx)
                     }
 
                     R.id.popup_folder_edit_menu_2 -> {
                         // 아이콘 바꾸기
-                        mContext.changeIcon(holder.binding, position, folderList)
+                        mContext.changeIcon(holder.binding, position, folderList[position].idx)
                     }
 
                     R.id.popup_folder_edit_menu_3 -> {

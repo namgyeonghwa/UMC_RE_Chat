@@ -9,19 +9,22 @@ import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.dateToString
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Chat
+import com.chat_soon_e.re_chat.data.entities.ChatList
+import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 
 class FolderContentRVAdapter(private val mContext: FolderContentActivity, private val mItemClickListener: MyClickListener)
     : RecyclerView.Adapter<FolderContentRVAdapter.ViewHolder>() {
-    var chatList = ArrayList<Chat>()
+    var chatList = ArrayList<ChatList>()
     private lateinit var popup: PopupMenu
 
     // 클릭 인터페이스
     interface MyClickListener {
-        fun onRemoveChat()
+        fun onRemoveChat(chatIdx:Int)
         fun onChatLongClick(popupMenu: PopupMenu)
     }
 
@@ -47,7 +50,7 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
 
     //AddData
     @SuppressLint("NotifyDataSetChanged")
-    fun addItem(chat: List<Chat>){
+    fun addItem(chat: List<ChatList>){
         chatList.clear()
         chatList.addAll(chat as ArrayList)
 
@@ -62,7 +65,7 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
                 popup.setOnMenuItemClickListener { item ->
                     when(item?.itemId) {
                         R.id.popup_chat_option_menu_delete -> {
-                            mItemClickListener.onRemoveChat()
+                            mItemClickListener.onRemoveChat(chatList[bindingAdapterPosition].chatIdx)
                             removeChat(bindingAdapterPosition)
                         }
                     }
@@ -74,15 +77,14 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(chat: Chat) {
-            val database = AppDatabase.getInstance(mContext)!!
-            val other = database.otherUserDao().getOtherUserById(chat.otherUserIdx)
-
-            binding.itemChatDefaultNameTv.text = other.nickname
+        fun bind(chat: ChatList) {
+            binding.itemChatDefaultNameTv.text = chat.nickName
             binding.itemChatDefaultMessageTv.text = chat.message
-            binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!)
-            binding.itemChatDefaultProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
-//            binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(other.image!!, mContext))
+            //binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!) 선우님
+            if(chat.profileImg==null||chat.profileImg=="null")
+                binding.itemChatDefaultProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
+            else
+                binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
         }
     }
 }
