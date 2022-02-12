@@ -33,8 +33,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     private lateinit var chatRVAdapter: ChatRVAdapter
     private val chatViewModel: ChatViewModel by viewModels()
     private lateinit var mPopupWindow: PopupWindow
-    private var chatList = ArrayList<Chat>()
-    private lateinit var chatListData:ChatList
+    private var chatList = ArrayList<ChatList>()
+    private lateinit var chatListData: ChatList
     private var isGroup:Boolean=false
     private var isAll:Int=0 //모든 채팅을 불러오는지(1), 각 채팅방을 불러오는 것인지(-1)
     private val userID=getID()
@@ -45,11 +45,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
         initData()
         initRecyclerView()
         initClickListener()
-    }
-
-    // test chat 초기화 (테스트용)
-    private fun initTestChat() {
-        if(chatList.isNotEmpty()) return
     }
 
     // FAB 애니메이션 초기화
@@ -90,15 +85,20 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             // 모든 데이터의 viewType 바꿔주기
             chatRVAdapter.setViewType(currentMode = it)
         }
+
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
-        if(chatListData.groupName=="null")
+        if(chatListData.groupName == "null")
             database.chatDao().getOneChatList(userID, chatListData.chatIdx).observe(this) {
                 chatRVAdapter.addItem(it)
+                chatList.clear()
+                chatList.addAll(it)
             }
         else
             database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
                 chatRVAdapter.addItem(it)
+                chatList.clear()
+                chatList.addAll(it)
             }
 
         // 폴더 선택 모드를 해제하기 위해
@@ -225,7 +225,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 }
                 //만약 비밀번호가 틀렸을경우 제대로 취소가 되는지 확인
                 // 폴더로 이동시키는 코드 작성
-                var selectedChatIdx=chatRVAdapter.getSelectedItemList()
+                val selectedChatIdx=chatRVAdapter.getSelectedItemList()
                 for(i in selectedChatIdx){
                     database.folderContentDao().insertChat(folderList[itemPosition].idx, i)
                 }

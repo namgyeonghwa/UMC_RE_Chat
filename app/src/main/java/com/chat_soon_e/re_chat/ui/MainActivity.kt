@@ -48,6 +48,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     private var permission: Boolean = true                      // 알림 허용 변수
     private val chatViewModel: ChatViewModel by viewModels()
     private val userID = getID()
+    private val tag = "ACT/MAIN"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,11 +70,11 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             user?.get(0)?.let { saveID(it.kakaoUserIdx) }
         }
 
-//        if(chatList.isEmpty()) {
-//            // 비어있는 경우 API 호출로 초기화
-//            val chatService = ChatService()
-//            chatService.getChatList(this, userID)
-//        }
+        if(chatList.isEmpty()) {
+            // 비어있는 경우 API 호출로 초기화
+            val chatService = ChatService()
+            chatService.getChatList(this, userID)
+        }
 
         Log.d("userID", "onStart: $userID  USERID: $USER_ID")
         initRecyclerView()          // RecylcerView Adapter 연결 & 기타 설정
@@ -127,11 +128,11 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     private fun initRecyclerView() {
         Log.d("MAIN", "after chatService.getChatList()")
 
-        // RecyclerView 구분선
-        val recyclerView = binding.mainContent.mainChatListRecyclerView
-        val dividerItemDecoration =
-            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
-        recyclerView.addItemDecoration(dividerItemDecoration)
+//        // RecyclerView 구분선
+//        val recyclerView = binding.mainContent.mainChatListRecyclerView
+//        val dividerItemDecoration =
+//            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
+//        recyclerView.addItemDecoration(dividerItemDecoration)
 
         // LinearLayoutManager 설정, 새로운 데이터 추가 시 스크롤 맨 위로
         val linearLayoutManager= LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -162,9 +163,10 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
                 mainRVAdapter.clearSelectedItemList()
 //                눌렀을 경우 chatIdx의 isNew를 바꾼다.
+                // 눌렀을 경우 확인한 게 되므로 isNew = false(0)이 된다.
                 val database=AppDatabase.getInstance(this@MainActivity)!!
-                database.chatDao().updateIsNew(chatList[position].chatIdx,1)
-                database.chatListDao().updateIsNew(chatList[position].chatIdx, 1)
+                database.chatDao().updateIsNew(chatList[position].chatIdx,0)
+                database.chatListDao().updateIsNew(chatList[position].chatIdx, 0)
 
             }
         })
@@ -260,11 +262,11 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 // 알림 권한을 허용하지 않았을 때
                 permission = false
                 Log.d("toggleListener", "is not Checked")
-                    startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-                    if(!permissionGrantred(this)){
-                        stopService(Intent(this, MyNotificationListener::class.java))
-                        Toast.makeText(this, "알림 권한을 허용하지 않습니다.", Toast.LENGTH_SHORT).show()
-                    }
+                startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                if (!permissionGrantred(this)) {
+                    stopService(Intent(this, MyNotificationListener::class.java))
+                    Toast.makeText(this, "알림 권한을 허용하지 않습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -483,7 +485,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 val folderContentDao=database.folderContentDao()
 
                 // 선택된 채팅의 아이디 리스트를 가져옴
-                var chatList=mainRVAdapter.getSelectedItem()
+                val chatList=mainRVAdapter.getSelectedItem()
 
                 Log.d("folderContents", chatList.toString())
                 // 폴더의 id를 가져옴
@@ -538,7 +540,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     }
 
     override fun onGetChatListSuccess(chatList: ArrayList<ChatList>) {
-        Log.d("ENTER", "onGetChatListSuccess()")
+        Log.d(tag, "onGetChatListSuccess()")
 
 //        database = AppDatabase.getInstance(this)!!
 //        mainRVAdapter.addItem(chatList)
@@ -549,9 +551,9 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     override fun onGetChatListFailure(code: Int, message: String) {
         // 채팅 불러오기 실패한 경우
         when(code) {
-            4000 -> Log.d("MAIN/API-ERROR", message)
-            4001 -> Log.d("MAIN/API-ERROR", message)
-            2100 -> Log.d("MAIN/API-ERROR", message)
+            4000 -> Log.d(tag, message)
+            4001 -> Log.d(tag, message)
+            2100 -> Log.d(tag, message)
         }
     }
 }

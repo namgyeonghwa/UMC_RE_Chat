@@ -263,6 +263,7 @@ class SplashActivity: AppCompatActivity(), UserView {
 
     override fun onAddKakaoUserFailure(code: Int, message: String) {
         when(code) {
+            3100 -> Log.d(tag, message)
             4000 -> Log.d(tag, message)
             4001 -> Log.d(tag, message)
             else -> Log.d(tag, "onAddKakaoUserFailure(): other error")

@@ -18,12 +18,17 @@ class UserService {
         // 응답 처리
         userService.addKakaoUser(userIdx).enqueue(object: Callback<UserResponse> {
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
-                val resp = response.body()!!
-                Log.d(tag, "onResponse() in addKakaoUser()")
+                Log.d(tag, "addKakaoUser()/onResponse()")
+                Log.d(tag, "addKakaoUSer()/onResponse()/userIdx: $userIdx")
+                Log.d(tag, "addKakaoUSer()/onResponse()/response.body: ${response.body()}")
 
-                when(resp.code) {
-                    1000 -> userView.onAddKakaoUserSuccess()
-                    else -> userView.onAddKakaoUserFailure(resp.code, resp.message)
+                if(response.isSuccessful && response.body() != null) {
+                    val resp = response.body()!!
+
+                    when(resp.code) {
+                        1000 -> userView.onAddKakaoUserSuccess()
+                        else -> userView.onAddKakaoUserFailure(resp.code, resp.message)
+                    }
                 }
             }
 

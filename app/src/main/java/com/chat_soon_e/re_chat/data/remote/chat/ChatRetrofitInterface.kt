@@ -9,19 +9,23 @@ interface ChatRetrofitInterface {
     fun addChat(
         @Path("kakaoUserIdx") kakaoUserIdx: Long,
         @Body chat: Chat
-    ): Call<AddChatResponse>
+    ): Call<ChatResponse>
 
     // 전체 채팅목록 가져오기 (메인화면)
     @GET("/app/chats/{kakaoUserIdx}/chatlist")
     fun getChatList(
         @Path("kakaoUserIdx") kakaoUserIdx: Long
-    ): Call<ChatListResponse>
+    ): Call<ChatResponse>
 
-    //갠톡 or 단톡 채팅 가져오기
-    @GET("/app/chat/{kakaoUserIdx}")
-    fun getChat(@Path("kakaoUserIdx")kakaoUserIdx: Int, @Query("otherUserIdx")otherUserIdx:Int?=null, @Query("groupName")groupName:String?=null):Call<ChatResponse>
+    // 갠톡 or 단톡 채팅 가져오기
+    @GET("/app/chat/{kakaoUserIdx}/chats")
+    fun getChat(
+        @Path("kakaoUserIdx") kakaoUserIdx: Long,
+        @Query("chatIdx") chatIdx: Int,
+        @Query("groupName") groupName: String? = null   // null이면 갠톡
+    ): Call<ChatResponse>
 
     //폴더 안의 채팅 리스트 가져오기
     @GET("/app/chat-folder/{kakaoUserIdx}")
-    fun getFolderChat(@Path("kakaoUserIdx")kakaoUserIdx:Int, @Query("folderIdx")folderIdx:Int):Call<FolderChatResponse>
+    fun getFolderChat(@Path("kakaoUserIdx")kakaoUserIdx:Int, @Query("folderIdx")folderIdx:Int):Call<ChatResponse>
 }

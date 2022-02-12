@@ -27,6 +27,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     var database = AppDatabase.getInstance(context)!!
     private val userID=getID()
+    private val tag = "RVADAPTER/MAIN"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -189,13 +190,13 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             }else if(chat.groupName !=null || chat.groupName!="null")
                 binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
             binding.itemChatListNameTv.text = chat.nickName
-            Log.d("MAIN-RV", "profile: ${chat.profileImg}")
+            Log.d(tag, "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = chat.postTime
-            // 가공은 필요할듯
-//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
+            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
 
+            Log.d(tag, "bind()/isNew: ${chat.isNew}")
             if(chat.isNew == 1) {
+                // 새로 온 경우 NEW 표시
                 binding.itemChatListNewCv.visibility = View.VISIBLE
             }
             else {
@@ -219,6 +220,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
+
             //틀릴 수도 있음!
             if(chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null ){
                 binding.itemChatListProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, context))
@@ -228,27 +230,32 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.nickName
             Log.d("MAIN-RV", "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = chat.postTime
-//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
-
+            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun dateToString(date:Date):String{
+    private fun convertDate(date :String): String{
+        val str: String
+        val today = Date()
+
+        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
+        val dateAsDate = simpleDateFormat1.parse(date)
+        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
+        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
+
         // 오늘이 아니라면 날짜만
-        var str=""
-        val today=Date()
-        if(date.year == today.year && date.month == today.month && date.date==today.date){
-            val time = SimpleDateFormat("a hh:mm")
-            str= time.format(date).toString()
+        if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
+            val time = SimpleDateFormat("a hh:mm", Locale.KOREAN)
+            str = time.format(dateAsDate).toString()
         } else{
             // simpleDateFormat은 thread에 안전하지 않습니다.
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
             val time = SimpleDateFormat("MM월 DD일")
-            str=time.format(date).toString()
+            str=time.format(dateAsDate).toString()
         }
         return str
     }

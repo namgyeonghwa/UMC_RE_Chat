@@ -11,20 +11,24 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.dateToString
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.*
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 import com.chat_soon_e.re_chat.databinding.ItemChatChooseBinding
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import java.util.*
+import kotlin.collections.ArrayList
 
 class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
+    private val tag = "RV/CHAT"
     private lateinit var popup: PopupMenu
-    private lateinit var binding: ItemChatBinding
-    private var currentPosition: Int = 0
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -109,7 +113,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
     //선택된 chatIdx 가져오기
     fun getSelectedItemList():List<Int>{
         val TG="moveList"
-        var chatIdxList=ArrayList<Int>()
+        val chatIdxList=ArrayList<Int>()
         val selectedList=chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
 
         for(i in selectedList){
@@ -138,7 +142,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
     }
 
     fun setChecked(position: Int) {
-        chatList[position].isChecked = !chatList[position].isChecked!!
+        chatList[position].isChecked = !chatList[position].isChecked
         notifyItemChanged(position)
     }
 
@@ -148,7 +152,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
     }
 
     // 직접 설정한 뷰타입으로 설정되게 만든다.
-    override fun getItemViewType(position: Int): Int = chatList[position].viewType!!
+    override fun getItemViewType(position: Int): Int = chatList[position].viewType
 
     // 디폴트 뷰홀더
     inner class DefaultViewHolder(private val binding: ItemChatBinding): RecyclerView.ViewHolder(binding.root) {
@@ -175,7 +179,6 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
             }
         }
 
-
 //            // 날짜가 바뀐 걸 확인을 하면
 //            binding.itemChatDefaultDateTimeLayout.visibility = View.VISIBLE
 //            binding.itemChatDefaultNewDateTimeTv.text = // 년월일
@@ -183,15 +186,29 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
 //            if(position == 0) // 날짜 표시
 //                else if(position != 0 && 이전 포지션에 들어있는 chatList의 데이트타임과 비교해서 1일 이상 차이가 나면 ture 반환) // 날짜 표시
 //            else //무시
+
+        @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
-            Log.d("chatNameRVA", chat.nickName.toString())
+//            val dateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+//            val date = dateFormat.format(chat.postTime)
+
+            Log.d(tag, "chat.nickname: ${chat.nickName}")
+            Log.d(tag, "chat.postTime: ${chat.postTime}")   // Sat Feb 12 15:07:32 GMT+09:00 2022 형식
+
             binding.itemChatDefaultNameTv.text = chat.nickName
             binding.itemChatDefaultMessageTv.text = chat.message
-//            binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!)
-            binding.itemChatDefaultDateTimeTv.text = chat.postTime
+            binding.itemChatDefaultDateTimeTv.text = convertDate(chat.postTime)
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
+//            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime!!, absoluteAdapterPosition)) {
+//                // 다음 날로 날짜가 바뀐 경우
+//                // 혹은 날짜가 1일 이상 차이날 때
+//                binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
+//                binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!)
+//            } else {
+//                binding.itemChatDefaultNewDateTimeLayout.visibility = View.GONE
+//            }
         }
     }
 
@@ -205,15 +222,97 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
             }
         }
 
+        @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
-            Log.d("chatNameRVA", chat.nickName.toString())
+            Log.d(tag, "chat.nickname: ${chat.nickName}")
+            Log.d(tag, "chat.postTime: ${chat.postTime}")   // Sat Feb 12 15:07:32 GMT+09:00 2022 형식
+
             binding.itemChatChooseNameTv.text = chat.nickName
             binding.itemChatChooseMessageTv.text = chat.message
-//            binding.itemChatChooseDateTimeTv.text = dateToString(chat.postTime!!)
-            binding.itemChatChooseDateTimeTv.text = chat.postTime
+            binding.itemChatChooseDateTimeTv.text = convertDate(chat.postTime)
             binding.itemChatChooseProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
+
+            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime, absoluteAdapterPosition)) {
+                // 다음 날로 날짜가 바뀐 경우
+                // 혹은 날짜가 1일 이상 차이날 때
+                binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.postTime)
+            } else {
+                // 날짜가 바뀐 게 아닌 경우
+                binding.itemChatChooseNewDateTimeLayout.visibility = View.GONE
+            }
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun convertDate(date :String): String {
+        val str: String
+        val today = Date()
+
+        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
+        val dateAsDate = simpleDateFormat1.parse(date)
+        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
+        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
+
+        // 오늘이 아니라면 날짜만
+        if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
+            val time = SimpleDateFormat("a hh:mm")
+            str = time.format(dateAsDate).toString()
+        } else{
+            // simpleDateFormat은 thread에 안전하지 않습니다.
+            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
+            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
+            // date.format(time_formatter)
+            val time = SimpleDateFormat("MM월 DD일")
+            str=time.format(dateAsDate).toString()
+        }
+        return str
+    }
+
+    private fun setNewDate(date: String): String {
+        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
+        val dateAsDate = simpleDateFormat1.parse(date)
+        val simpleDateFormat2 = SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREAN)
+
+        return simpleDateFormat2.format(dateAsDate!!)
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun isNextDay(date: String, position: Int): Boolean {
+        val period: Int
+
+        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
+        val currentDateAsDate = simpleDateFormat1.parse(date)
+        val previousDateAsDate = simpleDateFormat1.parse(chatList[position - 1].postTime)
+
+        val previousLocalDate = previousDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        val currentLocalDate = currentDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        val testLocalDate = LocalDate.of(2022, 2, 13)
+
+        Log.d(tag, "isNextDay()/previousDate: $previousLocalDate")
+        Log.d(tag, "isNextDay()/currentDate: $currentLocalDate")
+
+        val differenceDate = previousLocalDate.until(currentLocalDate, ChronoUnit.DAYS)
+        period = differenceDate.toInt()
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val previousLocalDate = chatList[position - 1].postTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//            val currentLocalDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//
+//            Log.d(tag, "isNextDay()/previousDate: $previousLocalDate")
+//            Log.d(tag, "isNextDay()/currentDate: $currentLocalDate")
+//
+//            val differenceDate = previousLocalDate.until(currentLocalDate, ChronoUnit.DAYS) + 1
+//            period = differenceDate.toInt()
+//        } else {
+//            val previousLocalDate = org.joda.time.LocalDate.
+//            val currentLocalDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//        }
+
+        Log.d(tag, "isNextDay()/differenceDate: $differenceDate")
+        Log.d(tag, "isNextDay()/period: $period")
+        return period >= 1
+    }
 }

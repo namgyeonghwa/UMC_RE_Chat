@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import java.io.Serializable
+import java.time.LocalDate
 import java.util.*
 
 // 서버와의 통신을 위한 데이터
@@ -14,7 +15,7 @@ data class ChatList(
     var nickName: String?,      // chat_name
     var groupName: String?,      // null이면 갠톡, 아니면 단톡
     var profileImg: String?,    // 프로필 사진 (단톡인 경우 없음)
-    var postTime: String?,       // latest_time에 해당
+    var postTime: String,       // latest_time에 해당
     var message: String?,       // latest_message에 해당
     var isNew: Int = 1
 ):Serializable {
