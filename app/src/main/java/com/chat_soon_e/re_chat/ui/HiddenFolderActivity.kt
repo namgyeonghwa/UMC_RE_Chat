@@ -55,26 +55,22 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         }
 
         hiddenFolderRVAdapter.setMyItemClickListener(object: HiddenFolderRVAdapter.MyItemClickListener {
-            // 폴더 숨김 해제
+            // 보관함으로 보내기
+            // 폴더 상태 HIDDEN -> ACTIVE
             override fun onShowFolder(folderIdx: Int) {
-                // 데이터베이스에 폴더 상태를 HIDDEN에서 ACTIVE로 바꿔준다.
-                database.folderDao().updateFolderHide(folderIdx)
-
-//                val folderService = FolderService()
-//                folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
+                database.folderDao().updateFolderUnHide(folderIdx)
             }
 
             // 폴더 삭제
+            // 폴더 상태를 HIDDEN -> DELETED로 바꿔준다.
             override fun onRemoveFolder(folderIdx: Int) {
-                // 데이터베이스에 폴더 상태를 HIDDEN에서 DELETED로 바꿔준다.
                 database.folderDao().deleteFolder(folderIdx)
             }
 
             // 폴더 클릭 시 이동
             override fun onFolderClick(view: View, position: Int) {
                 val selectedFolder = hiddenFolderRVAdapter.getSelectedFolder(position)
-                val gson = Gson()
-                val selectedFolderJson = gson.toJson(selectedFolder)
+                val selectedFolderJson = Gson().toJson(selectedFolder)
 
                 // 폴더 정보 보내기
                 val intent = Intent(this@HiddenFolderActivity, FolderContentActivity::class.java)
@@ -97,15 +93,14 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     // 클릭 리스너 초기화
     private fun initClickListener() {
         // 내폴더 아이콘 눌렀을 때
-        binding.hiddenFolderMyFolderIv.setOnClickListener {
-            startNextActivity(MyFolderActivity::class.java)
-            finish()
-        }
+//        binding.hiddenFolderMyFolderIv.setOnClickListener {
+////            startNextActivity(MyFolderActivity::class.java)
+//            finish()
+//        }
     }
 
     // 이름 바꾸기 팝업 윈도우
     @SuppressLint("InflateParams")
-
     fun changeFolderName(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx:Int) {
         val size = windowManager.currentWindowMetricsPointCompat()
         val width = (size.x * 0.8f).toInt()

@@ -79,11 +79,11 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
             override fun onFolderClick(view: View, position: Int) {
                 val selectedFolder = folderRVAdapter.getSelectedFolder(position)
 
-                // folder삽입시 status변경!null아님!!!!!!!!
-                val gson=Gson()
-                val folderJson=gson.toJson(selectedFolder)
+                // folder삽입시 status변경! null아님!!!!!!!!
+                val gson = Gson()
+                val folderJson = gson.toJson(selectedFolder)
 
-                // 폴더 정보를 보내기기
+                // 폴더 정보를 보내기
                 val intent = Intent(this@MyFolderActivity, FolderContentActivity::class.java)
                 intent.putExtra("folderData", folderJson)
                 startActivity(intent)
@@ -273,6 +273,7 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 //            folderService.createFolder(this, userID)
         }
 
+        // 숨김 보관함 목록
         binding.myFolderContent.myFolderToHiddenFolderIv.setOnClickListener {
             // 숨긴 폴더 목록 보기
             val lockSPF = getSharedPreferences("lock", 0)

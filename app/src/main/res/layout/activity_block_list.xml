@@ -14,7 +14,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/chat_chat_recycler_view">
+        app:layout_constraintBottom_toTopOf="@id/block_list_recycler_view">
 
         <ImageView
             android:id="@+id/block_list_back_iv"

@@ -25,7 +25,7 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
         fun onRemoveFolder(folderIdx: Int)
         fun onFolderClick(view: View, position: Int)
         fun onFolderLongClick(popupMenu: PopupMenu)
-        fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, position: Int)
+        fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx: Int)
     }
 
     // 리스너 객체를 외부에서 전달받는 함수
@@ -122,9 +122,9 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
         fun bind(folder: Folder) {
             currentPosition = bindingAdapterPosition
             itemHiddenFolderBinding.itemHiddenFolderTv.text = folder.folderName
+            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg!!)
 //            if(folder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(folder.folderImg!!, mContext))
 //            else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.ic_baseline_folder_24)
-            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg!!)
         }
     }
 }

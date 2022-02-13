@@ -56,13 +56,14 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
     // RecyclerView
     private fun initRecyclerView() {
+        val size = windowManager.currentWindowMetricsPointCompat()
         database = AppDatabase.getInstance(this)!!
 
         val linearLayoutManager= LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         linearLayoutManager.stackFromEnd = true
         binding.chatChatRecyclerView.layoutManager = linearLayoutManager
 
-        chatRVAdapter = ChatRVAdapter(this, object: ChatRVAdapter.MyItemClickListener {
+        chatRVAdapter = ChatRVAdapter(this, size, object: ChatRVAdapter.MyItemClickListener {
             // 채팅 삭제
             override fun onRemoveChat(position: Int) {
 
@@ -100,12 +101,16 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 chatRVAdapter.addItem(it)
                 chatList.clear()
                 chatList.addAll(it)
+//                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
+                binding.chatChatRecyclerView.scrollToPosition(0)
             }
         else
             database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
                 chatRVAdapter.addItem(it)
                 chatList.clear()
                 chatList.addAll(it)
+//                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
+                binding.chatChatRecyclerView.scrollToPosition(0)
             }
 
         // 폴더 선택 모드를 해제하기 위해
@@ -235,13 +240,12 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                         startNextActivity(InputPatternActivity::class.java)
                     }
                 }
-                //만약 비밀번호가 틀렸을경우 제대로 취소가 되는지 확인
+                // 만약 비밀번호가 틀렸을경우 제대로 취소가 되는지 확인
                 // 폴더로 이동시키는 코드 작성
-                val selectedChatIdx=chatRVAdapter.getSelectedItemList()
-                for(i in selectedChatIdx){
+                val selectedChatIdx = chatRVAdapter.getSelectedItemList()
+                for(i in selectedChatIdx) {
                     database.folderContentDao().insertChat(folderList[itemPosition].idx, i)
                 }
-                val TG="moveListcontent"
                 //Log.d(TG, "해당 폴더 목록"+database.folderContentDao().getAllfolder().toString())
 
                 // 팝업 윈도우를 꺼주는 역할

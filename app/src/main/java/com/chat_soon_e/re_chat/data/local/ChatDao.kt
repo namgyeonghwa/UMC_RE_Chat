@@ -53,7 +53,7 @@ interface ChatDao {
     fun getOrgChatList(userIdx:Long, chatIdx: Int):LiveData<List<ChatList>>
 
     //message==status로 가져옴
-    @Query("SELECT DISTINCT OU.nickname AS blockedName, OU.image AS blockedProfileImg, C.groupName AS groupName, OU.status AS message" +
+    @Query("SELECT DISTINCT OU.nickname AS blockedName, OU.image AS blockedProfileImg, C.groupName AS groupName, OU.status AS status" +
             "    FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx\n" +
             "    WHERE OU.kakaoUserIdx = :userIdx AND OU.status = 'BLOCKED' AND C.groupName =='null'\n" +
             "UNION\n" +

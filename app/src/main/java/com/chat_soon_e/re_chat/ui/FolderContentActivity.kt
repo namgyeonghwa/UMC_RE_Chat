@@ -1,6 +1,10 @@
 package com.chat_soon_e.re_chat.ui
 
+import android.graphics.Insets
+import android.graphics.Point
 import android.util.Log
+import android.view.WindowInsets
+import android.view.WindowManager
 import android.widget.PopupMenu
 import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.entities.Folder
@@ -11,49 +15,76 @@ import com.google.gson.Gson
 
 class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(ActivityFolderContentBinding::inflate) {
     private lateinit var database: AppDatabase
-    private lateinit var chatList: ArrayList<Chat>
     private lateinit var folderContentRVAdapter: FolderContentRVAdapter
-    lateinit var data: Folder
-    private val userID=getID()
-
+    lateinit var folderInfo: Folder
+    private val userID = getID()
+    private val tag = "ACT/FOLDER-CONTENT"
 
     override fun initAfterBinding() {
         initData()
         initRecyclerView()
         initClickListener()
     }
-    //들어간 폴더의 챗 정보를 보여줌??응?
+
+    // FolderContent 데이터 초기화
     private fun initData(){
         database = AppDatabase.getInstance(this)!!
 
         // 전 페이지에서 데이터 가져오는 부분
-        if(intent.hasExtra("folderData")){
-            var folderjson=intent.getStringExtra("folderData")
-            var gson=Gson()
-            data=gson.fromJson(folderjson, Folder::class.java)
+        if(intent.hasExtra("folderData")) {
+            val folderJson = intent.getStringExtra("folderData")
+            folderInfo = Gson().fromJson(folderJson, Folder::class.java)
+            binding.folderContentNameTv.text = folderInfo.folderName
+            Log.d(tag, "data: $folderInfo")
         }
-        // 폴더 이름으로 바인딩
-        binding.folderContentNameTv.text = data.folderName
     }
-
+//해당 폴더를 눌렀을떄 요기로 오게 된다
+//
+    // RecyclerView 초기화
     private fun initRecyclerView() {
+        // 휴대폰 윈도우 사이즈를 가져온다.
+        val size = windowManager.currentWindowMetricsPointCompat()
+
         database = AppDatabase.getInstance(this)!!
-        database.folderContentDao().getFolderChat(userID, data.idx).observe(
-            this
-        ) {
+
+        // FolderContent 데이터를 RecyclerView 어댑터와 연결
+        // userID: kakaoUserIdx, folderInfo.idx: folder index
+        database.folderContentDao().getFolderContent(userID, folderInfo.idx).observe(this) {
             folderContentRVAdapter.addItem(it)
         }
 
-        folderContentRVAdapter = FolderContentRVAdapter(this, object: FolderContentRVAdapter.MyClickListener {
-            override fun onRemoveChat(chatIdx:Int) {
-                // 채팅 삭제
-                database.folderContentDao().deleteChat(data.idx, chatIdx)
+        // RecyclerView click listener 초기화
+        folderContentRVAdapter = FolderContentRVAdapter(this, size, object: FolderContentRVAdapter.MyClickListener {
+            // 채팅 삭제
+            override fun onRemoveChat(chatIdx: Int) {
+                database.folderContentDao().deleteChat(folderInfo.idx, chatIdx)
             }
+
+            // 채팅 롱클릭 시 팝업 메뉴
             override fun onChatLongClick(popupMenu: PopupMenu) {
                 popupMenu.show()
             }
         })
+
         binding.folderContentRecyclerView.adapter = folderContentRVAdapter
+    }
+
+    // 디바이스 크기에 사이즈를 맞추기 위한 함수
+    private fun WindowManager.currentWindowMetricsPointCompat(): Point {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            val windowInsets = currentWindowMetrics.windowInsets
+            var insets: Insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            windowInsets.displayCutout?.run {
+                insets = Insets.max(insets, Insets.of(safeInsetLeft, safeInsetTop, safeInsetRight, safeInsetBottom))
+            }
+            val insetsWidth = insets.right + insets.left
+            val insetsHeight = insets.top + insets.bottom
+            Point(currentWindowMetrics.bounds.width() - insetsWidth, currentWindowMetrics.bounds.height() - insetsHeight)
+        } else{
+            Point().apply {
+                defaultDisplay.getSize(this)
+            }
+        }
     }
 
     private fun initClickListener() {

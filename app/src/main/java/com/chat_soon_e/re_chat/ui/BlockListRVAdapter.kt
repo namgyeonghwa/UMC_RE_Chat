@@ -19,12 +19,11 @@ import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 class BlockListRVAdapter(
     private val mContext: BlockListActivity,
     private val blockList: ArrayList<BlockedChatList>,
-    param: ChatRVAdapter.MyItemClickListener
+    private val param: BlockListRVAdapter.MyClickListener
 ): RecyclerView.Adapter<BlockListRVAdapter.ViewHolder>() {
     var chatList = ArrayList<BlockedChatList>()
-
     interface MyClickListener {
-        fun onRemoveChat(chatIdx:Int)
+        fun onRemoveChat(blockList:BlockedChatList)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BlockListRVAdapter.ViewHolder {
@@ -47,7 +46,7 @@ class BlockListRVAdapter(
         notifyDataSetChanged()
     }
 
-    private fun removeBlock(position: Int) {//roomdb지우고 ui의 리스틀 삭제한다.
+    private fun removeBlock(position: Int) {//roomdb지우고 ui의 리스트틀 삭제한다.
         blockList.removeAt(position)
         notifyItemRemoved(position)
         notifyItemRangeChanged(position, itemCount);
@@ -57,13 +56,17 @@ class BlockListRVAdapter(
     inner class ViewHolder(val binding: ItemBlockBinding): RecyclerView.ViewHolder(binding.root) {
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(block: BlockedChatList) {
+            binding.itemBlockCancelIv.setOnClickListener {
+                param.onRemoveChat(blockList[position])
+                removeBlock(position)
+            }
             if(block.groupName!=null&&block.groupName!="null")
-                binding.itemChatDefaultNameTv.text=block.groupName
+                binding.itemBlockNameTv.text=block.groupName
             else
-                binding.itemChatDefaultNameTv.text=block.blockedName
+                binding.itemBlockNameTv.text=block.blockedName
 
             if(block.blockedProfileImg!=null&&block.blockedProfileImg!="null")
-                binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(block.blockedProfileImg, mContext))
+                binding.itemBlockProfileIv.setImageBitmap(loadBitmap(block.blockedProfileImg, mContext))
 
         }
     }
