@@ -117,7 +117,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         // 폴더 선택 모드를 해제하기 위해
         binding.chatCancelFab.setOnClickListener {
-            binding.chatMainFab.setImageResource(R.drawable.ic_folder)
+            binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
             binding.chatCancelFab.startAnimation(fabClose)
             binding.chatCancelFab.isClickable = false
             isFabOpen = false
@@ -145,7 +145,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 popupWindowToFolderMenu()
             } else {
                 // fab 버튼이 닫혀있는 경우 (일반 모드에서 클릭했을 때)
-                binding.chatMainFab.setImageResource(R.drawable.ic_to_folder)
+                binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud_move)
                 binding.chatCancelFab.startAnimation(fabOpen)
                 binding.chatCancelFab.isClickable = true
                 isFabOpen = true
