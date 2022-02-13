@@ -85,6 +85,7 @@
         android:backgroundTint="#FFFFFF"
         android:src="@drawable/navi_center_cloud"
         app:maxImageSize="40dp"
+        app:tint="@null"
         app:fabCustomSize="80dp"
         app:borderWidth="0dp"
         android:layout_marginBottom="30dp"

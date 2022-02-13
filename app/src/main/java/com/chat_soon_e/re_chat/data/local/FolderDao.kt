@@ -19,7 +19,7 @@ interface FolderDao {
     @Query("SELECT * " +
             "FROM FolderTable\n" +
             "WHERE kakaoUserIdx = :userIdx AND status != 'HIDDEN';")
-    fun getFolderList(userIdx:Long): LiveData<List<Folder>>//liveData?
+    fun getFolderList(userIdx: Long): LiveData<List<Folder>>//liveData?
 
     //숨긴 폴더 목록 조회, 검증된
     @Query("SELECT *\n" +

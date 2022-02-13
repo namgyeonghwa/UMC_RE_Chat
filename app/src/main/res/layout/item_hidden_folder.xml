@@ -11,11 +11,11 @@
 
     <ImageView
         android:id="@+id/item_hidden_folder_iv"
-        android:layout_width="120dp"
-        android:layout_height="80dp"
-        android:src="@drawable/ic_baseline_folder_24"
+        android:layout_width="102dp"
+        android:layout_height="62dp"
         android:scaleType="fitCenter"
         app:layout_constraintVertical_chainStyle="packed"
+        android:src="@drawable/ic_hidden_folder_icon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/item_hidden_folder_tv"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,6 +30,7 @@
         android:textSize="16sp"
         android:visibility="visible"
         android:includeFontPadding="false"
+        android:layout_marginTop="10dp"
         android:lineSpacingExtra="0dp"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintTop_toBottomOf="@+id/item_hidden_folder_iv"

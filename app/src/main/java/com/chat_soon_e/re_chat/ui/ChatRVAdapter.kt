@@ -1,17 +1,15 @@
 package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
+import android.graphics.Insets
+import android.graphics.Point
 import android.os.Build
 import android.util.Log
 import android.util.SparseBooleanArray
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.dateToString
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.*
@@ -25,13 +23,11 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.collections.ArrayList
 
-class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     private lateinit var popup: PopupMenu
     private val tag = "RV/CHAT"
-    private lateinit var binding: ItemChatBinding
-    private var currentPosition: Int = 0
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -58,6 +54,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
     // 뷰홀더에 데이터 바인딩을 해줘야 할 때마다 호출되는 함수
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+
         when(chatList[position].viewType) {
             ChatListViewType.CHOOSE -> {
                 (holder as ChooseViewHolder).bind(chatList[position])
@@ -76,9 +73,9 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
     private fun removeChat(position: Int) {
         //맨 위에 있는 position을 선택했을 때
 //        chatList.removeAt(position)
-        if(position==0){
-            Log.d("ChatPosition", "ItemCount ${chatList.size}")
-            Log.d("ChatPosition", "Items ${chatList.toString()}")
+        if(position == 0){
+            Log.d("$tag/position", "itemCount ${chatList.size}")
+            Log.d("$tag/position", "item $chatList")
         }
         notifyDataSetChanged()
 //
@@ -115,13 +112,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
 
     //선택된 chatIdx 가져오기
     fun getSelectedItemList():List<Int>{
-        val TG="moveList"
         val chatIdxList=ArrayList<Int>()
         val selectedList=chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
 
-        for(i in selectedList){
-            chatIdxList.add(i.chatIdx)
-        }
+        for(i in selectedList) chatIdxList.add(i.chatIdx)
 
         return chatIdxList
     }
@@ -162,23 +156,15 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
         init {
             binding.itemChatDefaultMessageTv.setOnLongClickListener {
                 toggleItemSelected(itemView, position = bindingAdapterPosition)
-                popup = PopupMenu(
-                    mContext,
-                    binding.itemChatDefaultMessageTv,
-                    Gravity.START,
-                    0,
-                    R.style.MyFolderBottomPopupMenuTheme
-                )
+                popup = PopupMenu(mContext, binding.itemChatDefaultMessageTv, Gravity.START, 0, R.style.MyFolderBottomPopupMenuTheme)
                 popup.menuInflater.inflate(R.menu.popup_chat_option_menu, popup.menu)
                 popup.setOnMenuItemClickListener { item ->
                     when (item?.itemId) {
                         R.id.popup_chat_option_menu_delete -> {
                             // 삭제하기
-                            Log.d("ChatPosition", "position: $bindingAdapterPosition")
+                            Log.d(tag, "position: $bindingAdapterPosition")
                             mItemClickListener.onRemoveChat(bindingAdapterPosition)
-                            //position을 얻어올떄 오류 발생
-                            AppDatabase.getInstance(mContext)!!.chatDao()
-                                .deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
+                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
                             removeChat(bindingAdapterPosition)
                         }
                     }
@@ -192,11 +178,11 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
         @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
-//            val dateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
-//            val date = dateFormat.format(chat.postTime)
-
             Log.d(tag, "chat.nickname: ${chat.nickName}")
-            Log.d(tag, "chat.postTime: ${chat.postTime}")   // Sat Feb 12 15:07:32 GMT+09:00 2022 형식
+            Log.d(tag, "chat.postTime: ${chat.postTime}")
+
+            binding.itemChatDefaultMessageTv.maxWidth = (size.x * 0.6f).toInt()
+            binding.itemChatDefaultMessageTv.minHeight = (size.y * 0.05f).toInt()
 
             binding.itemChatDefaultNameTv.text = chat.nickName
             binding.itemChatDefaultMessageTv.text = chat.message
@@ -218,7 +204,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
             Log.d(tag, "chat.nickname: ${chat.nickName}")
-            Log.d(tag, "chat.postTime: ${chat.postTime}")   // Sat Feb 12 15:07:32 GMT+09:00 2022 형식
+            Log.d(tag, "chat.postTime: ${chat.postTime}")
+
+            binding.itemChatChooseMessageTv.maxWidth = (size.x * 0.6f).toInt()
+            binding.itemChatChooseMessageTv.minHeight = (size.y * 0.05f).toInt()
 
             binding.itemChatChooseNameTv.text = chat.nickName
             binding.itemChatChooseMessageTv.text = chat.message
@@ -330,5 +319,23 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
         Log.d(tag, "isNextDay()/differenceDate: $differenceDate")
         Log.d(tag, "isNextDay()/period: $period")
         return period >= 1
+    }
+
+    // 디바이스 크기에 사이즈를 맞추기 위한 함수
+    private fun WindowManager.currentWindowMetricsPointCompat(): Point {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            val windowInsets = currentWindowMetrics.windowInsets
+            var insets: Insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            windowInsets.displayCutout?.run {
+                insets = Insets.max(insets, Insets.of(safeInsetLeft, safeInsetTop, safeInsetRight, safeInsetBottom))
+            }
+            val insetsWidth = insets.right + insets.left
+            val insetsHeight = insets.top + insets.bottom
+            Point(currentWindowMetrics.bounds.width() - insetsWidth, currentWindowMetrics.bounds.height() - insetsHeight)
+        } else{
+            Point().apply {
+                defaultDisplay.getSize(this)
+            }
+        }
     }
 }

@@ -22,18 +22,12 @@ import java.util.*
 import kotlin.collections.ArrayList
 import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.HIDDEN
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.*
 import com.chat_soon_e.re_chat.data.remote.auth.USER_ID
-import com.chat_soon_e.re_chat.data.remote.chat.ChatService
-import com.chat_soon_e.re_chat.data.remote.folder.FolderList
-import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import com.chat_soon_e.re_chat.ui.view.GetChatListView
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.chat_soon_e.re_chat.utils.saveID
@@ -42,7 +36,7 @@ import com.google.android.material.navigation.NavigationView
 class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var database: AppDatabase
-    private lateinit var mainRVAdapter: MainRVAdapter           // chat list recycler view adpater
+    private lateinit var mainRVAdapter: MainRVAdapter
     private lateinit var mPopupWindow: PopupWindow
 
     private var iconList = ArrayList<Icon>()
@@ -72,26 +66,21 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
+
         database = AppDatabase.getInstance(this)!!
+
         if(userID.toInt() == -1) { // 비정상적 오류로 인해 종료되는 경우 제일 최근에 있는 유저정보를 가져옴(splash에서 유저id는 추가하지 않고 삭제만 한다)
             val user = database.userDao().getUsers()
             user?.get(0)?.let { saveID(it.kakaoUserIdx) }
         }
 
-        //        if(chatList.isEmpty()) {
-//            // 비어있는 경우 API 호출로 초기화
-//            val chatService = ChatService()
-//            chatService.getChatList(this, userID)
-//        }
-
         Log.d(tag, "onStart()/userID: $userID, USER_ID: $USER_ID")
-        initRecyclerView()          // RecylcerView Adapter 연결 & 기타 설정
-        initDrawerLayout()          // 설정 메뉴창 설정
-        initClickListener()         // 여러 ClickListener 초기화
+        initRecyclerView()
+        initDrawerLayout()
+        initClickListener()
     }
 
     // 아이콘 초기화
-    // 이렇게 넣어주는 방법밖에 없는 건가?
     private fun initIcon() {
         database = AppDatabase.getInstance(this)!!
         iconList = database.iconDao().getIconList() as ArrayList
@@ -124,49 +113,29 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 //        // Server API: 전체폴더 목록 가져오기 (숨김폴더 제외)
 //        val folderService = FolderService()
 //        folderService.getFolderList(this, userID)
-//
-//        val folderCount = database.folderDao().getFolderCount(userID)
-//        if (folderCount == 0) {
-//            Log.d(tag, "onFolderListFailure()/folderCount: $folderCount")
-//            database.folderDao().insert(Folder(userID, "새폴더1", null))
-//            database.folderDao().insert(Folder(userID, "새폴더2", null))
-//
-////            val folderService = FolderService()
-////            folderService.createFolder(this, userID)
-//        }
-//
-//        database.folderDao().getFolderList(userID).observe(this) {
-//            folderList.clear()
-//            folderList.addAll(it)
-//        }
 
-        // 폴더 초기 세팅 (새폴더1, 새폴더2)
-        // 처음엔 다 ACTIVE 폴더니까
-        AppDatabase.getInstance(this)!!.folderDao().getFolderList(userID).observe(this){
-            folderList=it as ArrayList<Folder>
-            Log.d("FOLDER_LIST: ","${folderList}")
+        database = AppDatabase.getInstance(this)!!
+
+        // 폴더 초기 세팅 (구르미 하나, 구르미 둘)
+        val folderCount = database.folderDao().getFolderCount(userID)
+        Log.d(tag, "folderCount: $folderCount")
+        if (folderCount == 0) {
+            database.folderDao().insert(Folder(userID, "구르미 하나", R.drawable.folder_default))
+            database.folderDao().insert(Folder(userID, "구르미 둘", R.drawable.folder_default))
         }
-        if (folderList.isEmpty()) {
-            database.folderDao().insert(Folder(userID, "새폴더11", R.drawable.ic_baseline_folder_24))
-            database.folderDao().insert(Folder(userID, "새폴더22", R.drawable.ic_baseline_folder_24))
-            database.folderDao().getFolderList(userID).observe(this) {
-                Log.d("FOLDER_LIST: ","${folderList}")
-                folderList=it as ArrayList<Folder>
-            }
+
+        database.folderDao().getFolderList(userID).observe(this) {
+            Log.d(tag,"folderList: $folderList")
+            folderList = it as ArrayList<Folder>
         }
-        //folder 들의 정보들을 가져와야 한다.
-        //만약 db에 폴더정보가 암것도 없으면 db에 기본 db를 추가한다.
     }
 
     // RecyclerView
     private fun initRecyclerView() {
-        Log.d("MAIN", "after chatService.getChatList()")
-
-        // RecyclerView 구분선
-        val recyclerView = binding.mainContent.mainChatListRecyclerView
-        val dividerItemDecoration =
-            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
-        recyclerView.addItemDecoration(dividerItemDecoration)
+//        // RecyclerView 구분선
+//        val recyclerView = binding.mainContent.mainChatListRecyclerView
+//        val dividerItemDecoration = DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
+//        recyclerView.addItemDecoration(dividerItemDecoration)
 
         // LinearLayoutManager 설정, 새로운 데이터 추가 시 스크롤 맨 위로
         val linearLayoutManager= LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -185,13 +154,13 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             // 일반 모드 (= 이동 모드)
             @SuppressLint("RestrictedApi")
             override fun onDefaultChatClick(view: View, position: Int, chat: ChatList) {
-                val spf =this@MainActivity.getSharedPreferences("chatAll", MODE_PRIVATE)
-                val editor=spf.edit()
+                val spf = this@MainActivity.getSharedPreferences("chatAll", MODE_PRIVATE)
+                val editor = spf.edit()
                 editor.putInt("chatAll", 1)
                 editor.apply()
 
                 val intent=Intent(this@MainActivity, ChatActivity::class.java)
-                //intent.putExtra("chatListJson", chatJson)
+                // intent.putExtra("chatListJson", chatJson)
                 intent.putExtra("chatListJson", chat)
                 startActivity(intent)
 
@@ -216,8 +185,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainContent.mainDeleteIv.visibility = View.GONE
                 binding.mainContent.mainMyFolderIv.visibility = View.VISIBLE
                 binding.mainContent.mainBlockIv.visibility = View.GONE
-                binding.mainContent.mainBlockListTv.text="차단목록"
-                binding.mainContent.mainMyFolderTv.text="내폴더"
+                binding.mainContent.mainBlockListTv.text="차단 목록"
+                binding.mainContent.mainMyFolderTv.text="보관함"
             } else {
                 // 선택 모드
                 mainRVAdapter.clearSelectedItemList()
@@ -241,7 +210,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         // 최근 챗 목록 데이터 추가
         database = AppDatabase.getInstance(this)!!
         database.chatDao().getRecentChat(userID).observe(this) {
-            Log.d("liveDataAdd", it.toString())
+            Log.d(tag, "liveData: $it")
             mainRVAdapter.addItem(it)
 //            chatList.addAll(chatList.size, it)
             chatList.clear()
@@ -271,8 +240,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         binding.mainNavigationView.setNavigationItemSelectedListener(this)
 
         val menuItem = binding.mainNavigationView.menu.findItem(R.id.navi_setting_alarm_item)
-        val drawerSwitch =
-            menuItem.actionView.findViewById(R.id.main_drawer_alarm_switch) as SwitchCompat
+        val drawerSwitch = menuItem.actionView.findViewById(R.id.main_drawer_alarm_switch) as SwitchCompat
 
         // 알림 권한 허용 여부에 따라 스위치(토글) 초기 상태 지정
         if (permissionGrantred(this)) {
@@ -330,7 +298,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 val lockSPF = getSharedPreferences("lock", 0)
                 val pattern = lockSPF.getString("pattern", "0")
 
-                //앱 삭제할때 같이 DB 저장 X
+                // 앱 삭제할때 같이 DB 저장 X
                 // 패턴 모드 설정
                 // 0: 숨긴 폴더 목록을 확인하기 위한 입력 모드
                 // 1: 메인 화면의 설정창 -> 변경 모드
@@ -457,12 +425,6 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     // 폴더로 보내기 팝업 윈도우
     @SuppressLint("InflateParams")
     private fun popupWindowToFolderMenu() {
-        database.folderDao().getFolderList(userID).observe(this){
-//            folderList.clear()
-//            folderList.addAll(it as ArrayList)
-            folderList=it as ArrayList<Folder>
-        }
-
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
         // 아이콘 16개 (기본)
         val size = windowManager.currentWindowMetricsPointCompat()
@@ -482,12 +444,17 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
         // RecyclerView 구분선
         val recyclerView = popupView.findViewById<RecyclerView>(R.id.popup_window_to_folder_menu_recycler_view)
-        val dividerItemDecoration =
-            DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
+        val dividerItemDecoration = DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
         recyclerView.addItemDecoration(dividerItemDecoration)
 
         // RecyclerView 초기화
         val folderListRVAdapter = FolderListRVAdapter(this@MainActivity)
+        val popupFolderList = ArrayList<Folder>()
+        AppDatabase.getInstance(this)!!.folderDao().getFolderList(userID).observe(this){
+            popupFolderList.addAll(it)
+            folderListRVAdapter.addFolderList(popupFolderList)
+        }
+
         recyclerView.adapter = folderListRVAdapter
         folderListRVAdapter.setMyItemClickListener(object: FolderListRVAdapter.MyItemClickListener {
             override fun onFolderClick(itemBinding: ItemFolderListBinding, itemPosition: Int) {
@@ -521,40 +488,27 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 val folderContentDao=database.folderContentDao()
 
                 // 선택된 채팅의 아이디 리스트를 가져옴
-                val chatList=mainRVAdapter.getSelectedItem()
+                val chatList = mainRVAdapter.getSelectedItem()
+                Log.d(tag, "chatList: $chatList")
 
-                Log.d("folderContents", chatList.toString())
                 // 폴더의 id를 가져옴
+                val folderIdx = folderList[itemPosition].idx
 
-                val folderIdx=folderList[itemPosition].idx
-                //갠톡: folderIdx, otherUserIdx
-                //단톡: folderIdx, userIdx, groupName
-                //이동
+                // 갠톡 이동: folderIdx, otherUserIdx
+                // 단톡 이동: folderIdx, userIdx, groupName
                 for(i in chatList) {
-                    //추후 다시 구현내용
-                    //폴더에 채팅을 넣을 것 쿼리 수정해야함!
-                    if(i.groupName!="null")
-                        folderContentDao.insertOrgChat(i.chatIdx, folderIdx, userID)
-                    else
-                        folderContentDao.insertOtOChat(folderIdx, i.chatIdx)
+                    if(i.groupName != "null") folderContentDao.insertOrgChat(i.chatIdx, folderIdx, userID)
+                    else folderContentDao.insertOtOChat(folderIdx, i.chatIdx)
                 }
-                Toast.makeText(this@MainActivity, "selected folder: ${selectedFolder.folderName}", Toast.LENGTH_SHORT).show()
 
                 // 팝업 윈도우를 꺼주는 역할
                 mPopupWindow.dismiss()
                 binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
             }
         })
+
         //팝업 윈도우에 뜨는 목록 중, 삭제된 폴더도 가져오기 때문에 추가를 함
         //folderListRVAdapter.addFolderList(appDB.folderDao().getFolderExceptDeletedFolder(DELETED) as ArrayList)
-        var popupFolderList=ArrayList<Folder>()
-        AppDatabase.getInstance(this)!!.folderDao().getFolderList(userID).observe(this){
-            popupFolderList.addAll(it)
-        }
-        AppDatabase.getInstance(this)!!.folderDao().getHiddenFolder(userID).observe(this){
-            popupFolderList.addAll(it)
-        }
-        folderListRVAdapter.addFolderList(popupFolderList)
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수
