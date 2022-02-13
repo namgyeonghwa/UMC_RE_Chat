@@ -12,7 +12,7 @@ import java.io.Serializable
 data class Folder(
     @SerializedName("kakaoUserIdx") var kakaoUserIdx: Long = 0,
     @SerializedName("folderName") var folderName: String,
-    @SerializedName("folderImg") var folderImg: Int = R.drawable.ic_baseline_folder_24
+    @SerializedName("folderImg") var folderImg: Int?
 ):Serializable{
     @PrimaryKey(autoGenerate = true) @SerializedName("folderIdx") var idx: Int = 0
     @SerializedName("status") var status: String="ACTIVE"

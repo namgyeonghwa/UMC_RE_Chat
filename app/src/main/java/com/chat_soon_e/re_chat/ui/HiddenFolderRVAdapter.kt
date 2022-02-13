@@ -43,7 +43,7 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
 
     // 뷰홀더에 데이터 바인딩을 해줘야 할 때마다 호출되는 함수
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(hiddenFolderList[position])//hidden 폴더들!
+        holder.bind(hiddenFolderList[position])
         itemHiddenFolderBinding = holder.itemHiddenFolderBinding
 
         // 폴더 이름 롱클릭 시 이름 변경할 수 있도록
@@ -122,7 +122,9 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
         fun bind(folder: Folder) {
             currentPosition = bindingAdapterPosition
             itemHiddenFolderBinding.itemHiddenFolderTv.text = folder.folderName
-            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg)
+//            if(folder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(folder.folderImg!!, mContext))
+//            else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.ic_baseline_folder_24)
+            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg!!)
         }
     }
 }

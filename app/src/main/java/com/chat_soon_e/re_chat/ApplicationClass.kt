@@ -31,7 +31,7 @@ class ApplicationClass : Application() {
         // DB: 데이터베이스명
         const val APP_DATABASE = "$TAG-DB"
 
-        const val DEV_URL: String = "";    // 테스트 서버 주소
+        const val DEV_URL: String = ""    // 테스트 서버 주소
         const val PROD_URL: String = ""    // 실서버 주소
         const val BASE_URL: String = DEV_URL    // apk 추출할 때 알맞게 바꾸면[넣어주면] 된다.
 
@@ -48,7 +48,7 @@ class ApplicationClass : Application() {
 
         //캐시 저장소로부터 이미지 불러오기
         //추후 진짜 캐시를 사용해 볼 것
-        fun loadBitmap(name: String,context:Context): Bitmap? {
+        fun loadBitmap(name: String, context:Context): Bitmap? {
             val file = File(context.cacheDir.toString())
             val files = file.listFiles()
             var list: String=""

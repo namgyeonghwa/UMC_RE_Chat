@@ -12,9 +12,9 @@ import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.local.AppDatabase
@@ -33,11 +33,12 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     private lateinit var chatRVAdapter: ChatRVAdapter
     private val chatViewModel: ChatViewModel by viewModels()
     private lateinit var mPopupWindow: PopupWindow
-    private var chatList = ArrayList<Chat>()
+    private var chatList = ArrayList<ChatList>()
     private lateinit var chatListData:ChatList
     private var isGroup:Boolean=false
     private var isAll:Int=0 //모든 채팅을 불러오는지(1), 각 채팅방을 불러오는 것인지(-1)
     private val userID=getID()
+    private val tag = "ACT/CHAT"
 
     override fun initAfterBinding() {
         //initData()
@@ -45,11 +46,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
         initData()
         initRecyclerView()
         initClickListener()
-    }
-
-    // test chat 초기화 (테스트용)
-    private fun initTestChat() {
-        if(chatList.isNotEmpty()) return
     }
 
     // FAB 애니메이션 초기화
@@ -61,6 +57,11 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     // RecyclerView
     private fun initRecyclerView() {
         database = AppDatabase.getInstance(this)!!
+
+        val linearLayoutManager= LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
+        linearLayoutManager.stackFromEnd = true
+        binding.chatChatRecyclerView.layoutManager = linearLayoutManager
+
         chatRVAdapter = ChatRVAdapter(this, object: ChatRVAdapter.MyItemClickListener {
             // 채팅 삭제
             override fun onRemoveChat(position: Int) {
@@ -90,15 +91,21 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             // 모든 데이터의 viewType 바꿔주기
             chatRVAdapter.setViewType(currentMode = it)
         }
+
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
-        if(chatListData.groupName=="null")
+
+        if(chatListData.groupName == "null")
             database.chatDao().getOneChatList(userID, chatListData.chatIdx).observe(this) {
                 chatRVAdapter.addItem(it)
+                chatList.clear()
+                chatList.addAll(it)
             }
         else
             database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
                 chatRVAdapter.addItem(it)
+                chatList.clear()
+                chatList.addAll(it)
             }
 
         // 폴더 선택 모드를 해제하기 위해
@@ -142,8 +149,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             finish()
         }
     }
-    //MainActivity로 부터 데이터를 가져온다.
 
+    //MainActivity로 부터 데이터를 가져온다.
     private fun initData(){
         // isAll : 모든 채팅 목록==-1, 특정 채팅방 목록==1
         isAll=getSharedPreferences("chatAll", MODE_PRIVATE).getInt("chatAll", 0)
@@ -155,7 +162,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 binding.chatNameTv.text=chatListData.groupName
             Log.d("chatListInitData", chatListData.toString())
         }
-
     }
 
     override fun onBackPressed() {
@@ -170,8 +176,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             folderList.clear()
             folderList.addAll(it as ArrayList<Folder>)
         }
-        //채팅 폴더 이동시 필요한 폴더 목록!folderlist
 
+        //채팅 폴더 이동시 필요한 폴더 목록!folderlist
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
         // 아이콘 16개 (기본)
         val size = windowManager.currentWindowMetricsPointCompat()
@@ -197,13 +203,15 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         // RecyclerView 초기화
         // 더미 데이터와 어댑터 연결
-        val folderListRVAdapter = FolderListRVAdapter()
+        val folderListRVAdapter = FolderListRVAdapter(this@ChatActivity)
         recyclerView.adapter = folderListRVAdapter
         folderListRVAdapter.setMyItemClickListener(object: FolderListRVAdapter.MyItemClickListener {
             override fun onFolderClick(itemBinding: ItemFolderListBinding, itemPosition: Int) {
                 // 이동하고 싶은 폴더 클릭 시 폴더로 채팅 이동 (뷰에는 그대로 남아 있도록)
                 val selectedFolder = folderList[itemPosition]
                 if (selectedFolder.status == ApplicationClass.HIDDEN) {
+
+                    // 읽는 용도
                     val lockSPF = getSharedPreferences("lock", 0)
                     val pattern = lockSPF.getString("pattern", "0")
 
@@ -212,6 +220,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                     // 1: 메인 화면의 설정창 -> 변경 모드
                     // 2: 폴더 화면의 설정창 -> 변경 모드
                     // 3: 메인 화면 폴더로 보내기 -> 숨김 폴더 눌렀을 경우
+
+                    // 쓰는 용도
                     val modeSPF = getSharedPreferences("mode", 0)
                     val editor = modeSPF.edit()
 
@@ -227,7 +237,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 }
                 //만약 비밀번호가 틀렸을경우 제대로 취소가 되는지 확인
                 // 폴더로 이동시키는 코드 작성
-                var selectedChatIdx=chatRVAdapter.getSelectedItemList()
+                val selectedChatIdx=chatRVAdapter.getSelectedItemList()
                 for(i in selectedChatIdx){
                     database.folderContentDao().insertChat(folderList[itemPosition].idx, i)
                 }

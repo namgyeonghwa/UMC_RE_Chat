@@ -26,7 +26,8 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     var database = AppDatabase.getInstance(context)!!
-    private val userID=getID()
+    private val userID = getID()
+    private val tag = "RV/MAIN"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -189,13 +190,13 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             }else if(chat.groupName !=null || chat.groupName!="null")
                 binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
             binding.itemChatListNameTv.text = chat.nickName
-            Log.d("MAIN-RV", "profile: ${chat.profileImg}")
+            Log.d(tag, "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = chat.postTime
-            // 가공은 필요할듯
-//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
+            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
 
+            Log.d(tag, "bind()/isNew: ${chat.isNew}")
             if(chat.isNew == 1) {
+                // 새로 온 경우 NEW 표시
                 binding.itemChatListNewCv.visibility = View.VISIBLE
             }
             else {
@@ -228,28 +229,59 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.nickName
             Log.d("MAIN-RV", "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = chat.postTime
-//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
-
+            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun dateToString(date:Date):String{
-        // 오늘이 아니라면 날짜만
-        var str=""
-        val today=Date()
-        if(date.year == today.year && date.month == today.month && date.date==today.date){
-            val time = SimpleDateFormat("a hh:mm")
-            str= time.format(date).toString()
-        } else{
-            // simpleDateFormat은 thread에 안전하지 않습니다.
-            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
-            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
-            // date.format(time_formatter)
-            val time = SimpleDateFormat("MM월 DD일")
-            str=time.format(date).toString()
+    private fun convertDate(date :String): String {
+        val str: String
+        val today = Calendar.getInstance()
+        Log.d(tag, "date: $date")
+
+        // 2022-02-13T02:35:37+09:00
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateAsDate = simpleDateFormat.parse(date)
+        Log.d(tag, "dateAsDate: $dateAsDate")
+
+        val diffDay = (today.time.time - dateAsDate!!.time) / (60 * 60 * 24 * 1000)
+
+        str = if(diffDay < 0) {
+            // 오늘인 경우
+            val sdf = SimpleDateFormat("a H:mm")
+            sdf.format(dateAsDate).toString()
+        } else {
+            val time = SimpleDateFormat("M월 D일")
+            time.format(date).toString()
+//            binding.itemChatListDateTimeTv.text = chat.postTime
+//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
         }
+
         return str
     }
+
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun dateToString(date:Date):String{
+//        // 오늘이 아니라면 날짜만
+//        var str=""
+//        val today=Date()
+//        if(date.year == today.year && date.month == today.month && date.date==today.date){
+//            val time = SimpleDateFormat("a hh:mm")
+//            str= time.format(date).toString()
+//        } else{
+//            // simpleDateFormat은 thread에 안전하지 않습니다.
+//            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
+//            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
+//            // date.format(time_formatter)
+//            val time = SimpleDateFormat("M월 d일")
+//            time.format(dateAsDate).toString()
+//        }
+//
+//        Log.d(tag, "str: $str")
+//            val time = SimpleDateFormat("MM월 DD일")
+//            str=time.format(date).toString()
+//        }
+//        return str
+//    }
 }

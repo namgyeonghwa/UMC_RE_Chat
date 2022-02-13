@@ -4,22 +4,24 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Insets
 import android.graphics.Point
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.HIDDEN
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.entities.Icon
 import com.chat_soon_e.re_chat.data.local.AppDatabase
+import com.chat_soon_e.re_chat.data.remote.folder.FolderService
+import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
+import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
+import com.chat_soon_e.re_chat.ui.view.UnhideFolderView
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
 
@@ -30,6 +32,9 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     private lateinit var hiddenFolderRVAdapter: HiddenFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
+
+    private var hiddenFolderList = ArrayList<Folder>()
+    private val tag = "ACT/HIDDEN-FOLDER"
     private val userID=getID()
 
     override fun initAfterBinding() {
@@ -48,11 +53,15 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         database.folderDao().getHiddenFolder(userID).observe(this){
             hiddenFolderRVAdapter.addFolderList(it as ArrayList<Folder>)
         }
+
         hiddenFolderRVAdapter.setMyItemClickListener(object: HiddenFolderRVAdapter.MyItemClickListener {
             // 폴더 숨김 해제
             override fun onShowFolder(folderIdx: Int) {
                 // 데이터베이스에 폴더 상태를 HIDDEN에서 ACTIVE로 바꿔준다.
                 database.folderDao().updateFolderHide(folderIdx)
+
+//                val folderService = FolderService()
+//                folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
             // 폴더 삭제
@@ -77,6 +86,7 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
             override fun onFolderLongClick(popupMenu: PopupMenu) {
                 popupMenu.show()
             }
+
             // 폴더 이름 롱클릭 시 이름 변경
             override fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx: Int) {
                 changeFolderName(itemHiddenFolderBinding, folderIdx)

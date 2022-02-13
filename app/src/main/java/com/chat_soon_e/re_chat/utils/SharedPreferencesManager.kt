@@ -18,4 +18,5 @@ fun saveID(user_id:Long){
     editor.putLong(USER_INFO, user_id)
     editor.apply()
 }
-fun getID():Long= mSharedPreferences.getLong(USER_INFO, -1)
+
+fun getID() :Long = mSharedPreferences.getLong(USER_INFO, -1)

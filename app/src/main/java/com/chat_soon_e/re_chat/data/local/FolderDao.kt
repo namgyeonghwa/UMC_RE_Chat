@@ -7,10 +7,13 @@ import com.chat_soon_e.re_chat.data.entities.Folder
 
 @Dao//폴더의 정보
 interface FolderDao {
-
     //폴더 추가, 검증된
     @Insert
     fun insert(folder: Folder)
+
+    // 폴더가 있는지 없는지 검사하기 위해
+    @Query("SELECT COUNT(*) FROM FolderTable WHERE kakaoUserIdx = :kakaoUserIdx")
+    fun getFolderCount(kakaoUserIdx: Long): Int
 
     //모든 폴더목록 조회, 검증된
     @Query("SELECT * " +
@@ -51,6 +54,7 @@ interface FolderDao {
     //폴더 삭제(폴더 삭제시 순서대로 실행), 검증된
     @Query("DELETE FROM FolderContentTable WHERE folderIdx = :folderIdx")
     fun deleteFolderContent(folderIdx:Int)
+
     @Query("DELETE FROM FolderTable\n" +
             "       WHERE idx = :idx;")
     fun deleteFolder(idx: Int)
