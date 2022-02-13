@@ -210,11 +210,10 @@
         android:layout_height="28dp"
         android:scaleType="fitCenter"
         android:src="@drawable/navi_block"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="@id/main_my_folder_tv"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="@id/main_my_folder_select_bar_iv"
         app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/main_folder_background_view"
+        app:layout_constraintEnd_toEndOf="@id/main_my_folder_select_bar_iv"
         app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />
 
     <!-- 내 폴더로 -->
@@ -242,7 +241,6 @@
         app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintEnd_toEndOf="parent"
         android:translationZ="10dp"/>
-
 
     <TextView
         android:id="@+id/main_my_folder_tv"

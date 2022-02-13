@@ -17,7 +17,7 @@
         android:scaleType="fitCenter"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/item_my_folder_tv"
+        app:layout_constraintBottom_toTopOf="@id/item_my_folder_tv"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

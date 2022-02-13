@@ -118,8 +118,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             Log.d("FOLDER_LIST: ","${folderList}")
         }
         if (folderList.isEmpty()) {
-            database.folderDao().insert(Folder(userID, "새폴더11", R.drawable.ic_baseline_folder_24))
-            database.folderDao().insert(Folder(userID, "새폴더22", R.drawable.ic_baseline_folder_24))
+            database.folderDao().insert(Folder(userID, "그르미 하나",R.drawable.folder_default))
+            database.folderDao().insert(Folder(userID, "그리미 둘", R.drawable.folder_default))
             database.folderDao().getFolderList(userID).observe(this) {
                 Log.d("FOLDER_LIST: ","${folderList}")
                 folderList=it as ArrayList<Folder>

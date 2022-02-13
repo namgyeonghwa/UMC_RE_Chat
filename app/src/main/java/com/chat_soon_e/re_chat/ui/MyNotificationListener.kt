@@ -41,8 +41,8 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
             if(AppDatabase.getInstance(this)!!.userDao().getUsers()==null)
                 Log.d(tag, "login error, 잘못된 접근")
             else{
-                userID = AppDatabase.getInstance(this)!!.userDao().getUsers()?.get(0)?.kakaoUserIdx!!
-                if(userID==null)
+                val data=AppDatabase.getInstance(this)!!.userDao().getUsers()
+                if(data!=null)
                     saveID(-1L)//오류 났을시 임시로 해주는 것
             }
         }

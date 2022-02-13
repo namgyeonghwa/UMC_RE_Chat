@@ -41,6 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/my_folder"
+            android:textSize="13sp"
             app:layout_constraintTop_toBottomOf="@id/my_folder_my_folder_iv"
             app:layout_constraintStart_toStartOf="@+id/my_folder_my_folder_iv"
             app:layout_constraintEnd_toEndOf="@+id/my_folder_my_folder_iv" />
@@ -158,7 +159,7 @@
         android:src="@drawable/navi_touch_bar"
         app:layout_constraintBottom_toBottomOf="@id/my_folder_bottom_bar_view"
         app:layout_constraintEnd_toStartOf="@id/my_folder_background_bottom_view"
-        app:layout_constraintHorizontal_bias="0.65"
+        app:layout_constraintHorizontal_bias="0.35"
         app:layout_constraintStart_toStartOf="parent" />
 
     <!-- 숨긴 폴더 목록으로 -->
@@ -195,7 +196,7 @@
         app:layout_constraintStart_toEndOf="@id/my_folder_background_bottom_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@id/my_folder_bottom_bar_view"
-        app:layout_constraintHorizontal_bias="0.35"
+        app:layout_constraintHorizontal_bias="0.65"
          />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
