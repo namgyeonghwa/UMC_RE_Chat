@@ -38,6 +38,8 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     private val userID=getID()
 
     override fun initAfterBinding() {
+        Log.d("AlluserIDCheck", "onChatAct $userID")
+
         initFolder()
         initClickListener()
     }

@@ -42,9 +42,14 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
             if(AppDatabase.getInstance(this)!!.userDao().getUsers()==null)
                 Log.d(tag, "login error, 잘못된 접근")
             else{
-                userID = AppDatabase.getInstance(this)!!.userDao().getUsers()?.get(0)?.kakaoUserIdx!!
-                if(userID==null)
+                val data=AppDatabase.getInstance(this)!!.userDao().getUsers()
+                if(data==null){
                     saveID(-1L)//오류 났을시 임시로 해주는 것
+                    userID= getID()
+                }else{
+                    saveID(data[0].kakaoUserIdx)
+                    userID=getID()
+                }
             }
         }
         super.onNotificationPosted(sbn)
@@ -100,8 +105,7 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
                         // 단톡이라면
                         if(database.otherUserDao().checkOrgBlock(userID, subText.toString()) == null) {
                             database.chatDao().insert(chat)
-
-//                            // Server API: 채팅 추가하기
+                            // Server API: 채팅 추가하기
 //                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(otherUser.nickname, subText.toString(), null, text.toString(), dateAsString)
 //                            val chatService = ChatService()
 //                            chatService.addChat(this, userID, remoteChat)

@@ -21,6 +21,8 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     private val tag = "ACT/FOLDER-CONTENT"
 
     override fun initAfterBinding() {
+        Log.d("AlluserIDCheck", "onChatAct $userID")
+
         initData()
         initRecyclerView()
         initClickListener()
@@ -38,7 +40,8 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
             Log.d(tag, "data: $folderInfo")
         }
     }
-
+//해당 폴더를 눌렀을떄 요기로 오게 된다
+//
     // RecyclerView 초기화
     private fun initRecyclerView() {
         // 휴대폰 윈도우 사이즈를 가져온다.
@@ -48,8 +51,9 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
 
         // FolderContent 데이터를 RecyclerView 어댑터와 연결
         // userID: kakaoUserIdx, folderInfo.idx: folder index
-        database.folderContentDao().getFolderContent(userID, folderInfo.idx).observe(this) {
+        database.folderContentDao().getFolderChat(userID, folderInfo.idx).observe(this) {
             folderContentRVAdapter.addItem(it)
+            Log.d("folderDatacheck: ", it.toString())
         }
 
         // RecyclerView click listener 초기화

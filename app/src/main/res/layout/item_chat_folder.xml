@@ -63,8 +63,8 @@
         app:layout_constraintBottom_toBottomOf="@+id/item_chat_default_message_tv"
         app:layout_constraintStart_toStartOf="parent" />
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:src="@drawable/background_circle"
         app:layout_constraintStart_toStartOf="@id/item_chat_default_profile_iv"
         app:layout_constraintEnd_toEndOf="@id/item_chat_default_profile_iv"

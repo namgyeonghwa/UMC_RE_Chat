@@ -72,9 +72,26 @@
         app:borderWidth="0dp"
         app:maxImageSize="25dp"
         app:fabCustomSize="60dp"
-        android:visibility="invisible"
+        android:visibility="visible"
+        app:layout_constraintTop_toTopOf="@+id/chat_main_fab"
+        app:layout_constraintBottom_toBottomOf="@+id/chat_main_fab"
+        app:layout_constraintStart_toStartOf="@+id/chat_main_fab"
+        app:layout_constraintEnd_toEndOf="@+id/chat_main_fab" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/chat_delete_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/white"
+        android:src="@drawable/chat_delete_btn_blue"
+        app:borderWidth="0dp"
+        app:maxImageSize="25dp"
+        app:fabCustomSize="60dp"
+        android:visibility="visible"
+        app:tint="@null"
         android:layout_marginBottom="15dp"
-        app:layout_constraintBottom_toTopOf="@+id/chat_main_fab"
+        app:layout_constraintTop_toTopOf="@+id/chat_main_fab"
+        app:layout_constraintBottom_toBottomOf="@+id/chat_main_fab"
         app:layout_constraintStart_toStartOf="@+id/chat_main_fab"
         app:layout_constraintEnd_toEndOf="@+id/chat_main_fab" />
 
@@ -85,8 +102,8 @@
         android:backgroundTint="#FFFFFF"
         android:src="@drawable/navi_center_cloud"
         app:maxImageSize="40dp"
-        app:tint="@null"
         app:fabCustomSize="80dp"
+        app:tint="@null"
         app:borderWidth="0dp"
         android:layout_marginBottom="30dp"
         android:layout_marginEnd="30dp"

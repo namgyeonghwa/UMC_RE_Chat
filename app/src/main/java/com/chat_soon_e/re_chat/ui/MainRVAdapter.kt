@@ -96,10 +96,19 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     // selectedItemList 차단
     @SuppressLint("NotifyDataSetChanged")
     fun blockSelectedItemList() {
-        // 삭제하고
-        val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
-        // val newChatList = chatList.filter { chat -> !chat.isChecked }
-        chatList = newChatList as ArrayList<ChatList>
+        // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
+        //val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
+        val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
+        //chatList = newChatList as ArrayList<ChatList>
+        // DB 업데이트
+        for(i in selectedList) {
+            if(i.groupName=="null"||i.groupName==null){   // 개인톡일 경우
+                i.nickName?.let { database.chatDao().blockOneChat(userID, it) }
+            }
+            else{   // 단체 톡일 경우 chatName인 것들 다 삭제
+                database.chatDao().blockOrgChat(userID, i.groupName!!)
+            }
+        }
         notifyDataSetChanged()
     }
 

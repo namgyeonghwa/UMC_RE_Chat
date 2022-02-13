@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.entities.ChatList
+import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
 
 @Dao
 interface ChatDao {
@@ -50,6 +51,16 @@ interface ChatDao {
             " WHERE OU.kakaoUserIdx = :userIdx AND C.status != 'DELETED' AND groupName = (SELECT groupName FROM ChatTable WHERE chatIdx = :chatIdx)" +
             " ORDER BY C.postTime DESC")
     fun getOrgChatList(userIdx:Long, chatIdx: Int):LiveData<List<ChatList>>
+
+    //message==status로 가져옴
+    @Query("SELECT DISTINCT OU.nickname AS blockedName, OU.image AS blockedProfileImg, C.groupName AS groupName, OU.status AS status" +
+            "    FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx\n" +
+            "    WHERE OU.kakaoUserIdx = :userIdx AND OU.status = 'BLOCKED' AND C.groupName =='null'\n" +
+            "UNION\n" +
+            "SELECT DISTINCT C.groupName AS blocked_name, null AS blocked_profileImg, C.groupName AS groupName, C.status AS status\n" +
+            "FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx\n" +
+            "WHERE OU.kakaoUserIdx = :userIdx AND C.status = 'BLOCKED' AND C.groupName != 'null'")
+    fun getBlockedChatList(userIdx:Long):LiveData<List<BlockedChatList>>
 
     //하나의 톡 삭제, 검증된
     @Query("DELETE FROM ChatTable WHERE chatIdx = :chatIdx")

@@ -49,6 +49,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
     private lateinit var itemBinding: ItemMyFolderBinding
 
     override fun initAfterBinding() {
+        Log.d("AlluserIDCheck", "onChatAct $userID")
+
         database = AppDatabase.getInstance(this)!!
         iconList = database.iconDao().getIconList() as ArrayList   // 아이콘 받아오기
         initRecyclerView()          // 폴더 초기화

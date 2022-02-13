@@ -1,5 +1,6 @@
 package com.chat_soon_e.re_chat.ui
 
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.graphics.Insets
 import android.graphics.Point
@@ -23,6 +24,8 @@ import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.databinding.ActivityChatBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
+import android.content.Intent
+import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 
 class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate) {
     private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
@@ -42,6 +45,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
     override fun initAfterBinding() {
         //initData()
+        Log.d("AlluserIDCheck", "onChatAct $userID")
         initFab()
         initData()
         initRecyclerView()
@@ -65,13 +69,36 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         chatRVAdapter = ChatRVAdapter(this, size, object: ChatRVAdapter.MyItemClickListener {
             // 채팅 삭제
-            override fun onRemoveChat(position: Int) {
+            override fun onRemoveChat(chatIdx: Int) {
+                Log.d(tag, "removed chat's chatIdx: $chatIdx")
+                Log.d(tag, "chatList: $chatList")
 
+                // 데이터베이스에서 삭제
+                AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(chatIdx)
+//                AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
             }
 
             // 채팅 롱클릭 시 팝업 메뉴 뜨도록
-            override fun onDefaultChatLongClick(popupMenu: PopupMenu) {
+            override fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int) {
                 chatRVAdapter.clearSelectedItemList()
+
+                val popupMenu = PopupMenu(this@ChatActivity, itemBinding.itemChatDefaultMessageTv, Gravity.END, 0, R.style.MyFolderBottomPopupMenuTheme)
+                popupMenu.menuInflater.inflate(R.menu.popup_chat_option_menu, popupMenu.menu)
+                popupMenu.setOnMenuItemClickListener { item ->
+                    when (item?.itemId) {
+                        R.id.popup_chat_option_menu_delete -> {
+                            // 삭제하기
+//                            mItemClickListener.onRemoveChat(chatIdx)
+                            AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(chatIdx)
+//                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
+                            chatRVAdapter.removeChat(chatIdx)
+
+//                            // 데이터베이스에서 삭제
+//                            AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
+                        }
+                    }
+                    false
+                }
                 popupMenu.show()
             }
 
@@ -101,8 +128,9 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 chatRVAdapter.addItem(it)
                 chatList.clear()
                 chatList.addAll(it)
+
 //                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
-                binding.chatChatRecyclerView.scrollToPosition(chatRVAdapter.itemCount - 1)
+                binding.chatChatRecyclerView.scrollToPosition(0)
             }
         else
             database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
@@ -110,14 +138,20 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 chatList.clear()
                 chatList.addAll(it)
 //                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
-                binding.chatChatRecyclerView.scrollToPosition(chatRVAdapter.itemCount - 1)
+                binding.chatChatRecyclerView.scrollToPosition(0)
             }
 
         // 폴더 선택 모드를 해제하기 위해
         binding.chatCancelFab.setOnClickListener {
-            binding.chatMainFab.setImageResource(R.drawable.ic_folder)
-            binding.chatCancelFab.startAnimation(fabClose)
+            binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
+            ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
+            ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
+//            binding.chatCancelFab.startAnimation(fabClose)
+//            binding.chatDeleteFab.startAnimation(fabClose)
+            binding.chatCancelFab.visibility = View.INVISIBLE
+            binding.chatDeleteFab.visibility = View.INVISIBLE
             binding.chatCancelFab.isClickable = false
+            binding.chatDeleteFab.isClickable = false
             isFabOpen = false
             binding.chatBackgroundView.visibility = View.INVISIBLE
 
@@ -143,10 +177,25 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 popupWindowToFolderMenu()
             } else {
                 // fab 버튼이 닫혀있는 경우 (일반 모드에서 클릭했을 때)
-                binding.chatMainFab.setImageResource(R.drawable.ic_to_folder)
-                binding.chatCancelFab.startAnimation(fabOpen)
+                binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud_move)
+                ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", -400f).apply { start() }
+                ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", -200f).apply { start() }
+//                binding.chatCancelFab.startAnimation(fabOpen)
+//                binding.chatDeleteFab.startAnimation(fabOpen)
+                binding.chatCancelFab.visibility = View.VISIBLE
+                binding.chatDeleteFab.visibility = View.VISIBLE
                 binding.chatCancelFab.isClickable = true
+                binding.chatDeleteFab.isClickable = true
                 isFabOpen = true
+            }
+        }
+
+        binding.chatDeleteFab.setOnClickListener {
+            val selectedChatIdx = chatRVAdapter.getSelectedItemList()
+
+            for(element in selectedChatIdx) {
+                AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(element)
+                chatRVAdapter.removeChat(element)
             }
         }
 

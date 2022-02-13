@@ -44,14 +44,15 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     private var chatList = ArrayList<ChatList>()
     private var permission: Boolean = true
     private val chatViewModel: ChatViewModel by viewModels()
-    private val userID = getID()
+    private var userID = getID()
     private val tag = "ACT/MAIN"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        Log.d(tag, "onCreate()/userID: $userID, USER_ID: $USER_ID")
+       //Log.d(tag, "onCreate()/userID: $userID, USER_ID: $USER_ID")
+        Log.d("AlluserIDCheck", "onChatAct $userID")
 
 //        if(chatList.isEmpty()) {
 //            // 비어있는 경우에만 API 호출로 초기화한 뒤, 이후로는 RoomDB에서 관리하는 방식으로 진행
@@ -68,12 +69,18 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         super.onStart()
 
         database = AppDatabase.getInstance(this)!!
-
-        if(userID.toInt() == -1) { // 비정상적 오류로 인해 종료되는 경우 제일 최근에 있는 유저정보를 가져옴(splash에서 유저id는 추가하지 않고 삭제만 한다)
-            val user = database.userDao().getUsers()
-            user?.get(0)?.let { saveID(it.kakaoUserIdx) }
+        if(userID.toInt()==-1){
+            if(AppDatabase.getInstance(this)!!.userDao().getUsers()==null)
+                Log.d(tag, "login error, 잘못된 접근")
+            else{
+                val data=AppDatabase.getInstance(this)!!.userDao().getUsers()
+                if(data==null)
+                    saveID(-1L)//오류 났을시 임시로 해주는 것
+                else
+                    data[0].let { saveID(it.kakaoUserIdx) }
+                userID=getID()
+            }
         }
-
         Log.d(tag, "onStart()/userID: $userID, USER_ID: $USER_ID")
         initRecyclerView()
         initDrawerLayout()
@@ -377,6 +384,11 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                     database.chatDao().blockOneChat(userID, i.groupName!!)
             }
         }
+        binding.mainContent.mainBlockListIv.setOnClickListener {
+            startActivity(Intent(this@MainActivity, BlockListActivity::class.java))
+            Log.d(tag, "차단하기로")
+
+        }
 
         // 하단 중앙 아이콘 클릭시
         binding.mainContent.mainFolderIv.setOnClickListener {
@@ -402,6 +414,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 }
                 // 해당 chat 차단
                 binding.mainContent.mainBlockIv.setOnClickListener {
+                    mainRVAdapter.blockSelectedItemList()
+                    Toast.makeText(this@MainActivity, "차단하기", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -444,8 +458,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
         // RecyclerView 구분선
         val recyclerView = popupView.findViewById<RecyclerView>(R.id.popup_window_to_folder_menu_recycler_view)
-        val dividerItemDecoration = DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
-        recyclerView.addItemDecoration(dividerItemDecoration)
+//        val dividerItemDecoration = DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
+//        recyclerView.addItemDecoration(dividerItemDecoration)
 
         // RecyclerView 초기화
         val folderListRVAdapter = FolderListRVAdapter(this@MainActivity)

@@ -32,7 +32,8 @@ data class FolderContent(
     @SerializedName("profileImgUrl") val profileImgUrl: String?,
     @SerializedName("message") val message: String,
     @SerializedName("chat_date") val chatDate: String?,
-    @SerializedName("post_time") val postTime: String
+    @SerializedName("post_time") val postTime: String,
+    @SerializedName("chatIdx")val chatIdx:Int
 )
 
 // 차단된 톡방 목록 가져오기
@@ -40,8 +41,7 @@ data class BlockedChatList(
     @SerializedName("blocked_name") val blockedName: String,
     @SerializedName("blocked_profileImg") val blockedProfileImg: String,
     @SerializedName("groupName") val groupName: String?,
-    @SerializedName("status") val status: String,
-    @SerializedName("postTime") var postTime: Date
+    @SerializedName("status") val status: String
 )
 
 // 전체 채팅 목록 가져오기 (메인화면)

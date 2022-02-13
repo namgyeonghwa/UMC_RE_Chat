@@ -124,39 +124,40 @@
         android:id="@+id/main_block_list_select_iv"
         android:layout_width="28dp"
         android:layout_height="28dp"
+        android:visibility="invisible"
         android:layout_marginTop="15dp"
         android:layout_marginBottom="-20dp"
         android:scaleType="fitCenter"
         android:src="@drawable/navi_touch_bar"
         android:translationZ="10dp"
         app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
-        app:layout_constraintEnd_toEndOf="@id/main_folder_background_view"
-        app:layout_constraintHorizontal_bias="0.35"
+        app:layout_constraintEnd_toStartOf="@id/main_folder_background_view"
+        app:layout_constraintHorizontal_bias="0.65"
         app:layout_constraintStart_toStartOf="parent" />
 
     <!-- 삭제하기 -->
     <ImageView
-        android:id="@+id/main_delete_iv"
+        android:id="@+id/main_block_iv"
         android:layout_width="28dp"
         android:layout_height="28dp"
         android:layout_marginBottom="5dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/navi_delete"
+        android:src="@drawable/selector_delete"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/main_block_list_tv"
         app:layout_constraintEnd_toEndOf="@id/main_block_list_tv"
         app:layout_constraintStart_toStartOf="@id/main_block_list_tv" />
 
     <!-- 하단 중앙 버튼 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="#FFFFFF"
-        android:translationZ="-1dp"
-        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
-        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"
-        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"
-        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:background="#FFFFFF"-->
+<!--        android:translationZ="-1dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"-->
+<!--        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"-->
+<!--        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />-->
 
     <ImageView
         android:id="@+id/main_folder_background_view"
@@ -203,12 +204,12 @@
 
     <!-- 차단하기 -->
     <ImageView
-        android:id="@+id/main_block_iv"
+        android:id="@+id/main_delete_iv"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="10dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/navi_block"
+        android:src="@drawable/selector_block"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintEnd_toEndOf="@id/main_my_folder_tv"
@@ -237,10 +238,11 @@
         android:scaleType="fitCenter"
         android:src="@drawable/navi_touch_bar"
         android:translationZ="10dp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.65"
-        app:layout_constraintStart_toStartOf="@id/main_folder_background_view" />
+        app:layout_constraintHorizontal_bias="0.32"
+        app:layout_constraintStart_toEndOf="@id/main_folder_background_view" />
 
     <TextView
         android:id="@+id/main_my_folder_tv"
@@ -264,7 +266,9 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
