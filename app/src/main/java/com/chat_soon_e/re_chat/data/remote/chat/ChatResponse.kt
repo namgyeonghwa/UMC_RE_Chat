@@ -14,6 +14,9 @@ data class ChatResponse(
 )
 
 // 채팅 추가하기 (서버와의 통신을 위해)
+
+//채팅 추가하기
+data class AddChatResponse(@SerializedName("isSuccess") val isSuccess: Boolean, @SerializedName("code") val code: Int, @SerializedName("message") val message: String)
 data class Chat(
     @SerializedName("nickname") var chatName: String,
     @SerializedName("groupName") var groupName: String?,
@@ -21,15 +24,6 @@ data class Chat(
     @SerializedName("message") var message: String,
     @SerializedName("postTime") var postTime: String
 )
-
-//data class ChatList(
-//    @SerializedName("chatIdx") var chatIdx: Int,
-//    @SerializedName("nickname") var nickname: String,
-//    @SerializedName("profileImgUrl") var profileImgUrl: String?,
-//    @SerializedName("message") var message: String,
-//    @SerializedName("post_time") var postTime: String,
-//    @SerializedName("groupName") var groupName: String?
-//)
 
 // 폴더 안의 채팅 가져오기
 data class FolderContent(
@@ -47,4 +41,28 @@ data class BlockedChatList(
     @SerializedName("blocked_profileImg") val blockedProfileImg: String,
     @SerializedName("groupName") val groupName: String?,
     @SerializedName("status") val status: String,
+    @SerializedName("postTime") var postTime: Date
+)
+
+// 전체 채팅 목록 가져오기 (메인화면)
+data class ChatListResponse(@SerializedName("isSuccess") val isSuccess: Boolean, @SerializedName("code") val code: Int, val message: String, val result: JsonArray?)
+
+// 갠톡 or 단톡 채팅 가져오기
+data class Chatas(
+    val nickname:String,
+    val profileImgUrl:String,
+    val message: String,
+    //@SerializedName("chat_date")val chatDate:Date,
+    @SerializedName("post_time")val postTime:Date,
+)
+
+// 폴더 안의 채팅 가져오기
+data class FolderChatResponse(@SerializedName("isSuccess")val isSuccess: Boolean, @SerializedName("code") val code:Int, val message: String, val result:JsonArray?)
+data class FolderChat(
+    val folderName:String,
+    val nickname:String,
+    val profileImgUrl: String,
+    val message:String,
+    @SerializedName("chat_date")val chatDate:Date,
+    @SerializedName("post_time")val postTime:Date,
 )

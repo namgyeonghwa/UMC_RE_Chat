@@ -93,4 +93,12 @@ interface ChatRetrofitInterface {
     fun getBlockedChatList(
         @Path("kakaoUserIdx") kakaoUserIdx: Long
     ): Call<ChatResponse>
+
+    //갠톡 or 단톡 채팅 가져오기
+    @GET("/app/chat/{kakaoUserIdx}")
+    fun getChat(@Path("kakaoUserIdx")kakaoUserIdx: Int, @Query("otherUserIdx")otherUserIdx:Int?=null, @Query("groupName")groupName:String?=null):Call<ChatResponse>
+
+    //폴더 안의 채팅 리스트 가져오기
+    @GET("/app/chat-folder/{kakaoUserIdx}")
+    fun getFolderChat(@Path("kakaoUserIdx")kakaoUserIdx:Int, @Query("folderIdx")folderIdx:Int):Call<FolderChatResponse>
 }

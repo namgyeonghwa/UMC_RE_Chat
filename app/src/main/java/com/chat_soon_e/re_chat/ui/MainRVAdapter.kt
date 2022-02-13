@@ -252,15 +252,36 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             val sdf = SimpleDateFormat("a H:mm")
             sdf.format(dateAsDate).toString()
         } else {
-            // simpleDateFormat은 thread에 안전하지 않습니다.
-            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
-            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
-            // date.format(time_formatter)
-            val time = SimpleDateFormat("M월 d일")
-            time.format(dateAsDate).toString()
+            val time = SimpleDateFormat("M월 D일")
+            time.format(date).toString()
+//            binding.itemChatListDateTimeTv.text = chat.postTime
+//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
         }
 
-        Log.d(tag, "str: $str")
         return str
     }
+
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun dateToString(date:Date):String{
+//        // 오늘이 아니라면 날짜만
+//        var str=""
+//        val today=Date()
+//        if(date.year == today.year && date.month == today.month && date.date==today.date){
+//            val time = SimpleDateFormat("a hh:mm")
+//            str= time.format(date).toString()
+//        } else{
+//            // simpleDateFormat은 thread에 안전하지 않습니다.
+//            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
+//            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
+//            // date.format(time_formatter)
+//            val time = SimpleDateFormat("M월 d일")
+//            time.format(dateAsDate).toString()
+//        }
+//
+//        Log.d(tag, "str: $str")
+//            val time = SimpleDateFormat("MM월 DD일")
+//            str=time.format(date).toString()
+//        }
+//        return str
+//    }
 }

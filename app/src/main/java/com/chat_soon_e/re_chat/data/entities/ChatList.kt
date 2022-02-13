@@ -3,9 +3,8 @@ package com.chat_soon_e.re_chat.data.entities
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 import java.io.Serializable
-import java.time.LocalDate
-import java.util.*
 
 // 서버와의 통신을 위한 데이터
 // chat query를 통해 불러온 데이터 형식

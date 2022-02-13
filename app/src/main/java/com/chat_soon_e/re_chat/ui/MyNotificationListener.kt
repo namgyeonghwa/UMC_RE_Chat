@@ -16,6 +16,7 @@ import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.ui.view.AddChatView
 import com.chat_soon_e.re_chat.utils.getID
+import com.chat_soon_e.re_chat.utils.saveID
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -40,8 +41,11 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
         if(userID.toInt()==-1){
             if(AppDatabase.getInstance(this)!!.userDao().getUsers()==null)
                 Log.d(tag, "login error, 잘못된 접근")
-            else
+            else{
                 userID = AppDatabase.getInstance(this)!!.userDao().getUsers()?.get(0)?.kakaoUserIdx!!
+                if(userID==null)
+                    saveID(-1L)//오류 났을시 임시로 해주는 것
+            }
         }
         super.onNotificationPosted(sbn)
         val notification: Notification = sbn.notification
@@ -197,7 +201,7 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
 
     // 실패한 경우
    override fun onAddChatFailure(code: Int, message: String) {
-        when(code){
+        when (code) {
             2100 -> Log.d(tag, message)
             2202 -> Log.d(tag, message)
             else -> Log.d(tag, message)

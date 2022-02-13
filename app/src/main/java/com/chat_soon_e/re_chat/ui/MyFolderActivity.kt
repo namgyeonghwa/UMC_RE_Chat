@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Base64
 import android.graphics.Insets
 import android.graphics.Point
 import android.os.Build
-import android.util.Base64
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -63,7 +63,7 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         binding.myFolderContent.myFolderFolderListRecyclerView.adapter = folderRVAdapter
 
         database.folderDao().getFolderList(userID).observe(this){
-            folderRVAdapter.addFolderList(it as ArrayList)
+            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
         }
 
         // click listener
@@ -252,14 +252,14 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         }
 
         binding.myFolderContent.myFolderAllChatIv.setOnClickListener {
-            // 전체 채팅 보여주기
-            val spf = this@MyFolderActivity.getSharedPreferences("chatAll", MODE_PRIVATE)
-            val editor = spf.edit()
-            editor.putInt("chatAll", -1)
-            editor.apply()
-
-            Log.d("isAllOR", "from btn"+getSharedPreferences("chatAll", MODE_PRIVATE).getInt("chatALl", 0).toString())
-            startNextActivity(ChatActivity::class.java)
+//            val spf = this@MyFolderActivity.getSharedPreferences("chatAll", MODE_PRIVATE)
+//            val editor = spf.edit()
+//            editor.putInt("chatAll", -1)
+//            editor.apply()
+//
+//            Log.d("isAllOR", "from btn"+getSharedPreferences("chatAll", MODE_PRIVATE).getInt("chatALl", 0).toString())
+//            startNextActivity(ChatActivity::class.java)
+            startNextActivity(MainActivity::class.java)
         }
 
         // 하단 중앙의 버튼을 눌렀을 때

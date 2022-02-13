@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.dateToString
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.*
@@ -29,6 +30,8 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     private lateinit var popup: PopupMenu
     private val tag = "RV/CHAT"
+    private lateinit var binding: ItemChatBinding
+    private var currentPosition: Int = 0
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -159,16 +162,23 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
         init {
             binding.itemChatDefaultMessageTv.setOnLongClickListener {
                 toggleItemSelected(itemView, position = bindingAdapterPosition)
-                popup = PopupMenu(mContext, binding.itemChatDefaultMessageTv, Gravity.START, 0, R.style.MyFolderBottomPopupMenuTheme)
+                popup = PopupMenu(
+                    mContext,
+                    binding.itemChatDefaultMessageTv,
+                    Gravity.START,
+                    0,
+                    R.style.MyFolderBottomPopupMenuTheme
+                )
                 popup.menuInflater.inflate(R.menu.popup_chat_option_menu, popup.menu)
                 popup.setOnMenuItemClickListener { item ->
-                    when(item?.itemId) {
+                    when (item?.itemId) {
                         R.id.popup_chat_option_menu_delete -> {
                             // 삭제하기
                             Log.d("ChatPosition", "position: $bindingAdapterPosition")
                             mItemClickListener.onRemoveChat(bindingAdapterPosition)
                             //position을 얻어올떄 오류 발생
-                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
+                            AppDatabase.getInstance(mContext)!!.chatDao()
+                                .deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
                             removeChat(bindingAdapterPosition)
                         }
                     }
@@ -178,14 +188,6 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
                 return@setOnLongClickListener false
             }
         }
-
-//            // 날짜가 바뀐 걸 확인을 하면
-//            binding.itemChatDefaultDateTimeLayout.visibility = View.VISIBLE
-//            binding.itemChatDefaultNewDateTimeTv.text = // 년월일
-
-//            if(position == 0) // 날짜 표시
-//                else if(position != 0 && 이전 포지션에 들어있는 chatList의 데이트타임과 비교해서 1일 이상 차이가 나면 ture 반환) // 날짜 표시
-//            else //무시
 
         @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
@@ -200,15 +202,6 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
             binding.itemChatDefaultMessageTv.text = chat.message
             binding.itemChatDefaultDateTimeTv.text = convertDateAtDefault(binding, chat.postTime)
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
-
-//            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime!!, absoluteAdapterPosition)) {
-//                // 다음 날로 날짜가 바뀐 경우
-//                // 혹은 날짜가 1일 이상 차이날 때
-//                binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
-//                binding.itemChatDefaultDateTimeTv.text = dateToString(chat.postTime!!)
-//            } else {
-//                binding.itemChatDefaultNewDateTimeLayout.visibility = View.GONE
-//            }
         }
     }
 
@@ -221,7 +214,6 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
                 mItemClickListener.onChooseChatClick(itemView, position = bindingAdapterPosition)
             }
         }
-
         @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {

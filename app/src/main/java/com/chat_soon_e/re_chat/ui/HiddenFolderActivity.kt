@@ -25,17 +25,17 @@ import com.chat_soon_e.re_chat.ui.view.UnhideFolderView
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
 
-class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHiddenFolderBinding::inflate),
-    HiddenFolderListView, UnhideFolderView {
+class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHiddenFolderBinding::inflate) {
+    private var iconList = ArrayList<Icon>()
+
     private lateinit var database: AppDatabase
     private lateinit var hiddenFolderRVAdapter: HiddenFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
 
     private var hiddenFolderList = ArrayList<Folder>()
-    private var iconList = ArrayList<Icon>()
-    private val userID = getID()
     private val tag = "ACT/HIDDEN-FOLDER"
+    private val userID=getID()
 
     override fun initAfterBinding() {
         initFolder()
@@ -45,9 +45,6 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     // 폴더 리스트 초기화
     private fun initFolder() {
         database = AppDatabase.getInstance(this)!!
-
-        val folderService = FolderService()
-        folderService.getHiddenFolderList(this, userID)
 
         // RecyclerView 초기화
         hiddenFolderRVAdapter = HiddenFolderRVAdapter(this)
@@ -63,8 +60,8 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
                 // 데이터베이스에 폴더 상태를 HIDDEN에서 ACTIVE로 바꿔준다.
                 database.folderDao().updateFolderHide(folderIdx)
 
-                val folderService = FolderService()
-                folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
+//                val folderService = FolderService()
+//                folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
             // 폴더 삭제
@@ -201,26 +198,5 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
 
     override fun onBackPressed() {
         finish()
-    }
-
-    override fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<HiddenFolderList>) {
-        Log.d(tag, "onHiddenFolderListSuccess()/hiddenFolderList: $hiddenFolderList")
-//        for(i in 0 until hiddenFolderList.size) {
-//            database.folderDao().insert(Folder(userID, hiddenFolderList[i].folderName, hiddenFolderList[i].folderImg))
-//            this.hiddenFolderList.add(Folder(userID, hiddenFolderList[i].folderName, hiddenFolderList[i].folderImg))
-//        }
-//        hiddenFolderRVAdapter.addFolderList(this.hiddenFolderList)
-    }
-
-    override fun onHiddenFolderListFailure(code: Int, message: String) {
-        Log.d(tag, "onHiddenFolderListFailure()/code: $code, message: $message")
-    }
-
-    override fun onUnhideFolderSuccess() {
-        Log.d(tag, "onUnhideFolderSuccess()/hiddenFolderList: $hiddenFolderList")
-    }
-
-    override fun onUnhideFolderFailure(code: Int, message: String) {
-        Log.d(tag, "onUnhideFolderFailure()/code: $code, message: $message")
     }
 }

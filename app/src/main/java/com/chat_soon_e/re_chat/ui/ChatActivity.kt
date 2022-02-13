@@ -16,51 +16,36 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass
 import com.chat_soon_e.re_chat.R
+import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.entities.ChatList
 import com.chat_soon_e.re_chat.data.entities.Folder
-import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.databinding.ActivityChatBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import com.chat_soon_e.re_chat.ui.view.GetChatView
 
-class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate), GetChatView {
+class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate) {
+    private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
     private lateinit var database: AppDatabase
-    private lateinit var chatRVAdapter: ChatRVAdapter
-    private lateinit var mPopupWindow: PopupWindow
-    private lateinit var chatListData: ChatList
-
-    private val chatViewModel: ChatViewModel by viewModels()
-    private var chatList = ArrayList<ChatList>()
     private var folderList = ArrayList<Folder>()
-    private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
+    private lateinit var chatRVAdapter: ChatRVAdapter
+    private val chatViewModel: ChatViewModel by viewModels()
+    private lateinit var mPopupWindow: PopupWindow
+    private var chatList = ArrayList<ChatList>()
+    private lateinit var chatListData:ChatList
     private var isGroup:Boolean=false
     private var isAll:Int=0 //모든 채팅을 불러오는지(1), 각 채팅방을 불러오는 것인지(-1)
     private val userID=getID()
     private val tag = "ACT/CHAT"
 
     override fun initAfterBinding() {
-        initData()
+        //initData()
         initFab()
+        initData()
         initRecyclerView()
         initClickListener()
-    }
-
-    //MainActivity로 부터 데이터를 가져온다.
-    private fun initData(){
-        // isAll : 모든 채팅 목록==-1, 특정 채팅방 목록==1
-        isAll=getSharedPreferences("chatAll", MODE_PRIVATE).getInt("chatAll", 0)
-        if(intent.hasExtra("chatListJson")){
-            chatListData = intent.getSerializableExtra("chatListJson") as ChatList
-            binding.chatNameTv.text = if(chatListData.groupName ==null ||chatListData.groupName=="null") chatListData.nickName else chatListData.groupName
-            Log.d("chatListInitData", chatListData.toString())
-        }
-
-//        val chatService = ChatService()
-//        chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
     }
 
     // FAB 애니메이션 초기화
@@ -165,6 +150,20 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
         }
     }
 
+    //MainActivity로 부터 데이터를 가져온다.
+    private fun initData(){
+        // isAll : 모든 채팅 목록==-1, 특정 채팅방 목록==1
+        isAll=getSharedPreferences("chatAll", MODE_PRIVATE).getInt("chatAll", 0)
+        if(intent.hasExtra("chatListJson")){
+            chatListData=intent.getSerializableExtra("chatListJson") as ChatList
+            if(chatListData.groupName==null ||chatListData.groupName=="null")
+                binding.chatNameTv.text=chatListData.nickName
+            else
+                binding.chatNameTv.text=chatListData.groupName
+            Log.d("chatListInitData", chatListData.toString())
+        }
+    }
+
     override fun onBackPressed() {
 //        startActivity(Intent(this,MainActivity::class.java))
         finish()
@@ -177,6 +176,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             folderList.clear()
             folderList.addAll(it as ArrayList<Folder>)
         }
+
+        //채팅 폴더 이동시 필요한 폴더 목록!folderlist
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
         // 아이콘 16개 (기본)
         val size = windowManager.currentWindowMetricsPointCompat()
@@ -274,32 +275,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     inner class PopupWindowDismissListener(): PopupWindow.OnDismissListener {
         override fun onDismiss() {
             binding.chatBackgroundView.visibility = View.INVISIBLE
-        }
-    }
-
-    override fun onGetChatSuccess(chatList: ArrayList<ChatList>) {
-        Log.d(tag, "onGetChatSuccess()/chatList: $chatList")
-        chatRVAdapter.addItem(chatList)
-        this.chatList.clear()
-        this.chatList.addAll(chatList)
-    }
-
-    override fun onGetChatFailure(code: Int, message: String) {
-        Log.d(tag, "code: $code, message: $message")
-
-        if(code == 400) {
-            if(chatListData.groupName == "null")
-                database.chatDao().getOneChatList(userID, chatListData.chatIdx).observe(this) {
-                    chatRVAdapter.addItem(it)
-                    chatList.clear()
-                    chatList.addAll(it)
-                }
-            else
-                database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
-                    chatRVAdapter.addItem(it)
-                    chatList.clear()
-                    chatList.addAll(it)
-                }
         }
     }
 }

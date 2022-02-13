@@ -7,7 +7,6 @@ import com.chat_soon_e.re_chat.data.entities.Folder
 
 @Dao//폴더의 정보
 interface FolderDao {
-
     //폴더 추가, 검증된
     @Insert
     fun insert(folder: Folder)
@@ -20,7 +19,7 @@ interface FolderDao {
     @Query("SELECT * " +
             "FROM FolderTable\n" +
             "WHERE kakaoUserIdx = :userIdx AND status != 'HIDDEN';")
-    fun getFolderList(userIdx: Long): LiveData<List<Folder>>//liveData?
+    fun getFolderList(userIdx:Long): LiveData<List<Folder>>//liveData?
 
     //숨긴 폴더 목록 조회, 검증된
     @Query("SELECT *\n" +

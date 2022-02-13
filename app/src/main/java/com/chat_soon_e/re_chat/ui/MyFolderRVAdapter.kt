@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.view.*
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.databinding.ItemMyFolderBinding
@@ -123,6 +122,7 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
 //            else binding.itemMyFolderIv.setImageResource(R.drawable.ic_baseline_folder_24)
 //            binding.itemMyFolderIv.setImageResource(folder.folderImg!!)
             binding.itemMyFolderTv.text = folder.folderName
+            binding.itemMyFolderIv.setImageResource(folder.folderImg!!)
             currentPosition = bindingAdapterPosition
         }
     }

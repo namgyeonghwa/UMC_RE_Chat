@@ -81,8 +81,8 @@ class SplashActivity: AppCompatActivity(), UserView {
                 if (error != null) {
                     // 로그인 필요
                     if (error is KakaoSdkError && error.isInvalidTokenError()) {
+//                        binding.splashKakaoIv.visibility = View.VISIBLE
                         binding.splashKakaoBtn.visibility = View.VISIBLE
-                        binding.splashKakaoIv.visibility = View.VISIBLE
                     }
                     // 기타 에러
                     else {
@@ -94,14 +94,14 @@ class SplashActivity: AppCompatActivity(), UserView {
                     Log.d(tag, "토큰 유효")
                     Log.d(tag, "user id in loginPermission(): $USER_ID")
                     binding.splashKakaoBtn.visibility = View.INVISIBLE
-                    binding.splashKakaoIv.visibility = View.INVISIBLE
+//                    binding.splashKakaoIv.visibility = View.INVISIBLE
                 }
             }
         }
         // 토큰 없음 (로그아웃 혹은 연결 끊김)
         else {
+//            binding.splashKakaoIv.visibility=View.VISIBLE
             binding.splashKakaoBtn.visibility=View.VISIBLE
-            binding.splashKakaoIv.visibility=View.VISIBLE
         }
     }
 
@@ -112,8 +112,8 @@ class SplashActivity: AppCompatActivity(), UserView {
                 Log.e(tag, "카카오계정으로 로그인 실패", error)
             } else if (token != null) {
                 Log.i(tag, "카카오계정으로 로그인 성공 ${token.accessToken}")
+//                binding.splashKakaoIv.visibility = View.INVISIBLE
                 binding.splashKakaoBtn.visibility = View.INVISIBLE
-                binding.splashKakaoIv.visibility = View.INVISIBLE
                 saveUserInfo("login")
             }
         }
@@ -132,8 +132,8 @@ class SplashActivity: AppCompatActivity(), UserView {
                     UserApiClient.instance.loginWithKakaoAccount(this, callback = callback)
                 } else if (token != null) {
                     Log.i(tag, "카카오톡으로 로그인 성공 ${token.accessToken}")
+//                    binding.splashKakaoIv.visibility=View.INVISIBLE
                     binding.splashKakaoBtn.visibility=View.INVISIBLE
-                    binding.splashKakaoIv.visibility=View.INVISIBLE
 
                     saveUserInfo("login")
                 }
@@ -187,10 +187,11 @@ class SplashActivity: AppCompatActivity(), UserView {
                             //유저 인포 저장
                             dao.insert(User(user.id, user.kakaoAccount?.profile?.nickname.toString(), user.kakaoAccount?.email.toString(), ACTIVE))
 
-                            // Server API: 카카오 회원 추가하기
-                            val userService = UserService()
-                            userService.addKakaoUser(this, user.id)
-                            Log.d(tag, "Server API: user.id")
+//                            // Server API: 카카오 회원 추가하기
+//                            val userService = UserService()
+//                            userService.addKakaoUser(this, user.id)
+//                            Log.d(tag, "Server API: user.id")
+
                         }else{
                             if(users.status=="delete")
                             // 유저 인포 업데이트
