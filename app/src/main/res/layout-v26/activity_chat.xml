@@ -83,7 +83,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/white"
-        android:src="@drawable/chat_delete_btn_blue"
+        android:src="@drawable/ic_delete_black"
         app:borderWidth="0dp"
         app:maxImageSize="25dp"
         app:fabCustomSize="60dp"

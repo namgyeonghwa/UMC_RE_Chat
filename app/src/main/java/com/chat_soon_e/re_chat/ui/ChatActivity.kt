@@ -78,29 +78,29 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 //                AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
             }
 
-            // 채팅 롱클릭 시 팝업 메뉴 뜨도록
-            override fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int) {
-                chatRVAdapter.clearSelectedItemList()
-
-                val popupMenu = PopupMenu(this@ChatActivity, itemBinding.itemChatDefaultMessageTv, Gravity.END, 0, R.style.MyFolderBottomPopupMenuTheme)
-                popupMenu.menuInflater.inflate(R.menu.popup_chat_option_menu, popupMenu.menu)
-                popupMenu.setOnMenuItemClickListener { item ->
-                    when (item?.itemId) {
-                        R.id.popup_chat_option_menu_delete -> {
-                            // 삭제하기
-//                            mItemClickListener.onRemoveChat(chatIdx)
-                            AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(chatIdx)
-//                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
-                            chatRVAdapter.removeChat(chatIdx)
-
-//                            // 데이터베이스에서 삭제
-//                            AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
-                        }
-                    }
-                    false
-                }
-                popupMenu.show()
-            }
+//            // 채팅 롱클릭 시 팝업 메뉴 뜨도록
+//            override fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int) {
+//                chatRVAdapter.clearSelectedItemList()
+//
+//                val popupMenu = PopupMenu(this@ChatActivity, itemBinding.itemChatDefaultMessageTv, Gravity.END, 0, R.style.MyFolderBottomPopupMenuTheme)
+//                popupMenu.menuInflater.inflate(R.menu.popup_chat_option_menu, popupMenu.menu)
+//                popupMenu.setOnMenuItemClickListener { item ->
+//                    when (item?.itemId) {
+//                        R.id.popup_chat_option_menu_delete -> {
+//                            // 삭제하기
+////                            mItemClickListener.onRemoveChat(chatIdx)
+//                            AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(chatIdx)
+////                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
+//                            chatRVAdapter.removeChat(chatIdx)
+//
+////                            // 데이터베이스에서 삭제
+////                            AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
+//                        }
+//                    }
+//                    false
+//                }
+//                popupMenu.show()
+//            }
 
             // 선택 모드
             override fun onChooseChatClick(view: View, position: Int) {
@@ -190,12 +190,30 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             }
         }
 
+        // 삭제하는 경우
         binding.chatDeleteFab.setOnClickListener {
             val selectedChatIdx = chatRVAdapter.getSelectedItemList()
 
-            for(element in selectedChatIdx) {
-                AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(element)
-                chatRVAdapter.removeChat(element)
+            if(selectedChatIdx.isNotEmpty()) {
+                for (element in selectedChatIdx) {
+                    AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(element)
+                }
+                chatRVAdapter.removeChat(selectedChatIdx)
+                chatRVAdapter.clearSelectedItemList()
+
+                binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
+                ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
+                ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
+                binding.chatCancelFab.visibility = View.INVISIBLE
+                binding.chatDeleteFab.visibility = View.INVISIBLE
+                binding.chatCancelFab.isClickable = false
+                binding.chatDeleteFab.isClickable = false
+                isFabOpen = false
+                binding.chatBackgroundView.visibility = View.INVISIBLE
+
+                // 일반 모드로
+                chatRVAdapter.clearSelectedItemList()
+                chatViewModel.setMode(mode = 0)
             }
         }
 

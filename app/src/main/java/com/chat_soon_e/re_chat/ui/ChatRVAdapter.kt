@@ -31,7 +31,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     // 클릭 인터페이스
     interface MyItemClickListener {
         fun onRemoveChat(chatIdx: Int)
-        fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int)
+//        fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int)
         fun onChooseChatClick(view: View, position: Int)
     }
 
@@ -69,7 +69,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     override fun getItemCount(): Int = chatList.size
 
     @SuppressLint("NotifyDataSetChanged")
-    fun removeChat(chatIdx: Int) {
+    fun removeChat(selectedChatIdxList: List<Int>) {
         //맨 위에 있는 position을 선택했을 때
 //        chatList.removeAt(position)
 //        if(position == 0){
@@ -77,18 +77,16 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 //            Log.d("$tag/position", "item $chatList")
 //        }
 
-        var position: Int = 0
 
         for(i in 0 until chatList.size - 1) {
-            if(chatList[i].chatIdx == chatIdx) {
-                chatList.remove(chatList[i])
-                position = i
+            for(j in 0 until selectedChatIdxList.size - 1) {
+                if (chatList[i].chatIdx == selectedChatIdxList[j]) chatList.removeAt(selectedChatIdxList[j])
             }
         }
 
-//        notifyDataSetChanged()
-        notifyItemRemoved(position)
-        notifyItemRangeChanged(position, itemCount)
+        notifyDataSetChanged()
+//        notifyItemRemoved(position)
+//        notifyItemRangeChanged(position, itemCount)
     }
 
     //AddData
