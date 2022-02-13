@@ -58,23 +58,6 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
     }
 
     inner class ViewHolder(val binding: ItemChatBinding): RecyclerView.ViewHolder(binding.root) {
-        init {
-            binding.itemChatDefaultMessageTv.setOnLongClickListener {
-                popup = PopupMenu(mContext, binding.itemChatDefaultMessageTv, Gravity.START, 0, R.style.MyFolderOptionPopupMenuTheme)
-                popup.menuInflater.inflate(R.menu.popup_chat_option_menu, popup.menu)
-                popup.setOnMenuItemClickListener { item ->
-                    when(item?.itemId) {
-                        R.id.popup_chat_option_menu_delete -> {
-                            mItemClickListener.onRemoveChat(chatList[bindingAdapterPosition].chatIdx)
-                            removeChat(bindingAdapterPosition)
-                        }
-                    }
-                    false
-                }
-                mItemClickListener.onChatLongClick(popup)
-                return@setOnLongClickListener false
-            }
-        }
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {

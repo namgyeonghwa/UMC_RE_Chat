@@ -253,7 +253,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             sdf.format(dateAsDate).toString()
         } else {
             val time = SimpleDateFormat("M월 D일")
-            time.format(date).toString()
+            time.format(dateAsDate).toString()
 //            binding.itemChatListDateTimeTv.text = chat.postTime
 //            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
         }

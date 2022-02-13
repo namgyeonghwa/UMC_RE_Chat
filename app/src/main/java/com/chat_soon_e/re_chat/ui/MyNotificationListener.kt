@@ -92,9 +92,9 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
                             database.chatDao().insert(chat)
 
                             // Server API: 채팅 추가하기
-                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(otherUser.nickname, null, null, text.toString(), dateAsString)
-                            val chatService = ChatService()
-                            chatService.addChat(this, userID, remoteChat)
+//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(otherUser.nickname, null, null, text.toString(), dateAsString)
+//                            val chatService = ChatService()
+                            //chatService.addChat(this, userID, remoteChat)
                         }
                     } else{
                         // 단톡이라면
@@ -102,9 +102,9 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
                             database.chatDao().insert(chat)
 
                             // Server API: 채팅 추가하기
-                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(otherUser.nickname, subText.toString(), null, text.toString(), dateAsString)
-                            val chatService = ChatService()
-                            chatService.addChat(this, userID, remoteChat)
+//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(otherUser.nickname, subText.toString(), null, text.toString(), dateAsString)
+//                            val chatService = ChatService()
+//                            chatService.addChat(this, userID, remoteChat)
                         }
                     }
                 }
@@ -122,15 +122,15 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
                         if(subText == null) {
                             // 단톡이 아닌 경우 groupName == null
                             // Server API: 채팅 추가하기
-                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
-                            val chatService = ChatService()
-                            chatService.addChat(this, userID, remoteChat)
+//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
+//                            val chatService = ChatService()
+//                            chatService.addChat(this, userID, remoteChat)
                         } else {
                             // 단톡인 경우
                             // Server API: 채팅 추가하기
-                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
-                            val chatService = ChatService()
-                            chatService.addChat(this, userID, remoteChat)
+//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
+//                            val chatService = ChatService()
+//                            chatService.addChat(this, userID, remoteChat)
                         }
                     } else {
                         database.otherUserDao().insert(OtherUser(name.toString(), null, ACTIVE, userID))
@@ -140,15 +140,15 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
                         if(subText == null) {
                             // 단톡이 아닌 경우 groupName == null
                             // Server API: 채팅 추가하기
-                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
-                            val chatService = ChatService()
-                            chatService.addChat(this, userID, remoteChat)
+//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
+//                            val chatService = ChatService()
+//                            chatService.addChat(this, userID, remoteChat)
                         } else {
                             // 단톡인 경우
                             // Server API: 채팅 추가하기
-                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
-                            val chatService = ChatService()
-                            chatService.addChat(this, userID, remoteChat)
+//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
+//                            val chatService = ChatService()
+//                            chatService.addChat(this, userID, remoteChat)
                         }
                     }
                 }

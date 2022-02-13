@@ -40,8 +40,7 @@ data class BlockedChatList(
     @SerializedName("blocked_name") val blockedName: String,
     @SerializedName("blocked_profileImg") val blockedProfileImg: String,
     @SerializedName("groupName") val groupName: String?,
-    @SerializedName("status") val status: String,
-    @SerializedName("postTime") var postTime: Date
+    @SerializedName("status") val status: String
 )
 
 // 전체 채팅 목록 가져오기 (메인화면)
