@@ -26,7 +26,7 @@ interface ChatListDao {
     fun getChatList(): List<ChatList>
 
     @Query("SELECT * FROM ChatListTable WHERE chatIdx = :chatIdx")
-    fun getOneChatList(chatIdx: Int): ChatList
+    fun getChatListByChatIdx(chatIdx: Int): ChatList
 
     @Query("DELETE FROM ChatListTable WHERE chatIdx = :chatIdx")
     fun deleteChatListByIdx(chatIdx: Int)

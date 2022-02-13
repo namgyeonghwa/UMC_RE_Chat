@@ -25,6 +25,7 @@ import com.chat_soon_e.re_chat.databinding.ActivityChatBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
 import android.content.Intent
+import androidx.recyclerview.widget.DiffUtil
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 
 class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate) {
@@ -42,6 +43,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     private var isAll:Int=0 //모든 채팅을 불러오는지(1), 각 채팅방을 불러오는 것인지(-1)
     private val userID=getID()
     private val tag = "ACT/CHAT"
+    private var isDeletedStatus: Boolean = false
 
     override fun initAfterBinding() {
         //initData()
@@ -112,9 +114,11 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             if (it == 0) {
                 // 일반 모드
                 chatRVAdapter.clearSelectedItemList()
+                chatRVAdapter.addItem(chatList)
             } else {
                 // 선택 모드
                 chatRVAdapter.clearSelectedItemList()
+                chatRVAdapter.addItem(chatList)
             }
             // 모든 데이터의 viewType 바꿔주기
             chatRVAdapter.setViewType(currentMode = it)
@@ -123,23 +127,27 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
 
-        if(chatListData.groupName == "null")
-            database.chatDao().getOneChatList(userID, chatListData.chatIdx).observe(this) {
-                chatRVAdapter.addItem(it)
-                chatList.clear()
-                chatList.addAll(it)
+        if(!isDeletedStatus) {
+            if(chatListData.groupName == "null")
+                database.chatDao().getOneChatList(userID, chatListData.chatIdx).observe(this) {
+                    chatRVAdapter.addItem(it)
+                    chatList.clear()
+                    chatList.addAll(it)
+                    updateList(it)
 
 //                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
-                binding.chatChatRecyclerView.scrollToPosition(0)
-            }
-        else
-            database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
-                chatRVAdapter.addItem(it)
-                chatList.clear()
-                chatList.addAll(it)
+                    binding.chatChatRecyclerView.scrollToPosition(0)
+                }
+            else
+                database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
+                    chatRVAdapter.addItem(it)
+                    chatList.clear()
+                    chatList.addAll(it)
+                    updateList(it)
 //                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
-                binding.chatChatRecyclerView.scrollToPosition(0)
-            }
+                    binding.chatChatRecyclerView.scrollToPosition(0)
+                }
+        }
 
         // 폴더 선택 모드를 해제하기 위해
         binding.chatCancelFab.setOnClickListener {
@@ -160,6 +168,19 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             chatViewModel.setMode(mode = 0)
         }
    }
+
+    private fun updateList(selectedChatList: List<ChatList>?) {
+        selectedChatList?.let {
+            val diffCallback = DiffUtilCallback(chatList, selectedChatList)
+            val diffResult = DiffUtil.calculateDiff(diffCallback)
+
+            this.chatList.run {
+                clear()
+                addAll(selectedChatList)
+                diffResult.dispatchUpdatesTo(chatRVAdapter)
+            }
+        }
+    }
 
     private fun initClickListener() {
         // 메인 FAB 버튼 눌렀을 때
@@ -192,14 +213,22 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         // 삭제하는 경우
         binding.chatDeleteFab.setOnClickListener {
+//            isDeletedStatus = true
             val selectedChatIdx = chatRVAdapter.getSelectedItemList()
-
+            Log.d(tag, "selectedChatIdx: $selectedChatIdx")
             if(selectedChatIdx.isNotEmpty()) {
-                for (element in selectedChatIdx) {
-                    AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(element)
+                if(selectedChatIdx.size == 1) {
+                    AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(selectedChatIdx[0])
+                    chatRVAdapter.removeChat()
+                } else {
+                    for (element in selectedChatIdx) {
+                        AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(element)
+                        chatRVAdapter.removeChat()
+                    }
                 }
-                chatRVAdapter.removeChat(selectedChatIdx)
+//                chatRVAdapter.addItem(AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().getChatList())
                 chatRVAdapter.clearSelectedItemList()
+                chatViewModel.setMode(mode = 0)
 
                 binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
                 ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
@@ -210,11 +239,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 binding.chatDeleteFab.isClickable = false
                 isFabOpen = false
                 binding.chatBackgroundView.visibility = View.INVISIBLE
-
-                // 일반 모드로
-                chatRVAdapter.clearSelectedItemList()
-                chatViewModel.setMode(mode = 0)
             }
+//            isDeletedStatus = false
         }
 
         binding.chatBackIv.setOnClickListener {

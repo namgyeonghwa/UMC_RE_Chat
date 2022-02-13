@@ -4,11 +4,12 @@ import android.annotation.SuppressLint
 import android.graphics.Insets
 import android.graphics.Point
 import android.os.Build
+import android.text.method.TextKeyListener.clear
 import android.util.Log
 import android.util.SparseBooleanArray
 import android.view.*
-import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
@@ -21,6 +22,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.Collections.addAll
 import kotlin.collections.ArrayList
 
 class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -69,7 +71,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     override fun getItemCount(): Int = chatList.size
 
     @SuppressLint("NotifyDataSetChanged")
-    fun removeChat(selectedChatIdxList: List<Int>) {
+    fun removeChat() {
         //맨 위에 있는 position을 선택했을 때
 //        chatList.removeAt(position)
 //        if(position == 0){
@@ -77,16 +79,51 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 //            Log.d("$tag/position", "item $chatList")
 //        }
 
+//        for(i in 0 until chatList.size - 1) {
+//            if(selectedItemList[i]) {
+//                chatList.removeAt(i)
+//                notifyItemRemoved(i)
+//                notifyItemRangeChanged(i, chatList.size)
+//            }
+//        }
 
-        for(i in 0 until chatList.size - 1) {
-            for(j in 0 until selectedChatIdxList.size - 1) {
-                if (chatList[i].chatIdx == selectedChatIdxList[j]) chatList.removeAt(selectedChatIdxList[j])
+        val selectedChatList = ArrayList<ChatList>()
+        for(i in 0 until chatList.size) {
+//            if(i == chatList.size - 1) {
+//                chatList.removeAt(chatList.size - 1)
+//                return
+//            }
+            if(selectedItemList[i]) {
+                selectedChatList.add(chatList[i])
             }
         }
+        updateList(selectedChatList)
 
-        notifyDataSetChanged()
+//        for(i in 0 until chatList.size - 1) {
+//            for(j in 0 until selectedChatIdxList.size - 1) {
+//                if (chatList[i].chatIdx == selectedChatIdxList[j]) {
+//                    chatList.removeAt(selectedChatIdxList[j])
+//                }
+//            }
+//        }
+
+//        mContext.runOnUiThread(java.lang.Runnable { notifyDataSetChanged() })
+//        Thread { notifyDataSetChanged() }.start()
 //        notifyItemRemoved(position)
 //        notifyItemRangeChanged(position, itemCount)
+    }
+
+    private fun updateList(selectedChatList: List<ChatList>?) {
+        selectedChatList?.let {
+            val diffCallback = DiffUtilCallback(chatList, selectedChatList)
+            val diffResult = DiffUtil.calculateDiff(diffCallback)
+
+            this.chatList.run {
+                clear()
+                addAll(selectedChatList)
+                diffResult.dispatchUpdatesTo(this@ChatRVAdapter)
+            }
+        }
     }
 
     //AddData
@@ -101,8 +138,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     // will toggle the selection of items
     private fun toggleItemSelected(view: View?, position: Int) {
         if(selectedItemList.get(position, false)) {
+            Log.d(tag, "selected position: $position")
             selectedItemList.delete(position)
         } else {
+            Log.d(tag, "selected position: $position")
             selectedItemList.put(position, true)
         }
         notifyItemChanged(position)
@@ -117,12 +156,23 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
     //선택된 chatIdx 가져오기
     fun getSelectedItemList():List<Int>{
-        val chatIdxList=ArrayList<Int>()
+        val chatIdxList = ArrayList<Int>()
         val selectedList=chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
 
         for(i in selectedList) chatIdxList.add(i.chatIdx)
 
         return chatIdxList
+
+//        val selectedChatList = ArrayList<Int>()
+//        for(i in 0 until selectedItemList.size()) {
+//            if(selectedItemList[i]) {
+//                selectedChatList.add(chatList[i].chatIdx)
+//                Log.d(tag, "selectedChatList[$i].chatIdx: ${chatList[i].chatIdx}")
+//            }
+//        }
+//
+//        Log.d(tag, "selectedChatList: $selectedChatList")
+//        return selectedChatList
     }
 
     // 뷰타입 설정
@@ -201,7 +251,9 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
         : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.itemChatChooseMessageTv.setOnClickListener {
+                Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
                 toggleItemSelected(itemView, position = bindingAdapterPosition)
+                Log.d(tag, "selectedItemList: $selectedItemList")
                 mItemClickListener.onChooseChatClick(itemView, position = bindingAdapterPosition)
             }
 
