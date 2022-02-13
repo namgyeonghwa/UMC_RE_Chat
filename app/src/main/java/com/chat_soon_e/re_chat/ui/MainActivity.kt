@@ -68,7 +68,6 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             val user = database.userDao().getUsers()
             user?.get(0)?.let { saveID(it.kakaoUserIdx) }
         }
-
 //        if(chatList.isEmpty()) {
 //            // 비어있는 경우 API 호출로 초기화
 //            val chatService = ChatService()
@@ -113,14 +112,21 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     private fun initFolder() {
         // API: 전체폴더 목록 가져오기 (숨김폴더 제외)
         // 폴더 초기 세팅 (새폴더1, 새폴더2)
+        // 처음엔 다 ACTIVE 폴더니까
+        AppDatabase.getInstance(this)!!.folderDao().getFolderList(userID).observe(this){
+            folderList=it as ArrayList<Folder>
+            Log.d("FOLDER_LIST: ","${folderList}")
+        }
         if (folderList.isEmpty()) {
-            database.folderDao().insert(Folder(userID, "새폴더1", R.drawable.ic_baseline_folder_24))
-            database.folderDao().insert(Folder(userID, "새폴더2", R.drawable.ic_baseline_folder_24))
+            database.folderDao().insert(Folder(userID, "새폴더11", R.drawable.ic_baseline_folder_24))
+            database.folderDao().insert(Folder(userID, "새폴더22", R.drawable.ic_baseline_folder_24))
             database.folderDao().getFolderList(userID).observe(this) {
-                folderList.clear()
-                folderList.addAll(it)
+                Log.d("FOLDER_LIST: ","${folderList}")
+                folderList=it as ArrayList<Folder>
             }
         }
+        //folder 들의 정보들을 가져와야 한다.
+        //만약 db에 폴더정보가 암것도 없으면 db에 기본 db를 추가한다.
     }
 
     // RecyclerView
@@ -181,6 +187,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainContent.mainDeleteIv.visibility = View.GONE
                 binding.mainContent.mainMyFolderIv.visibility = View.VISIBLE
                 binding.mainContent.mainBlockIv.visibility = View.GONE
+                binding.mainContent.mainBlockListTv.text="차단목록"
+                binding.mainContent.mainMyFolderTv.text="내폴더"
             } else {
                 // 선택 모드
                 mainRVAdapter.clearSelectedItemList()
@@ -191,6 +199,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainContent.mainDeleteIv.visibility = View.VISIBLE
                 binding.mainContent.mainMyFolderIv.visibility = View.GONE
                 binding.mainContent.mainBlockIv.visibility = View.VISIBLE
+                binding.mainContent.mainBlockListTv.text="삭제"
+                binding.mainContent.mainMyFolderTv.text="차단"
             }
             // 모든 데이터의 viewType 바꿔주기
             mainRVAdapter.setViewType(currentMode = it)
@@ -219,7 +229,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             binding.mainContent.mainFolderIv.visibility = View.VISIBLE
             binding.mainContent.mainFolderModeIv.visibility = View.GONE
             binding.mainContent.mainCancelIv.visibility = View.GONE
-            binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+            binding.mainContent.mainBlockIv.visibility=View.GONE
         }
     }
 
@@ -407,7 +417,6 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainDrawerLayout.openDrawer(GravityCompat.START)
             }
         }
-
         // 설정 메뉴창에 있는 메뉴 아이콘 클릭시 설정 메뉴창 닫히도록
         val headerView = binding.mainNavigationView.getHeaderView(0)
         headerView.setOnClickListener {
@@ -420,10 +429,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     @SuppressLint("InflateParams")
     private fun popupWindowToFolderMenu() {
         database.folderDao().getFolderList(userID).observe(this){
-            folderList.clear()
-            folderList.addAll(it as ArrayList)
+                folderList=it as ArrayList<Folder>
         }
-
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
         // 아이콘 16개 (기본)
         val size = windowManager.currentWindowMetricsPointCompat()
@@ -509,7 +516,14 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         })
         //팝업 윈도우에 뜨는 목록 중, 삭제된 폴더도 가져오기 때문에 추가를 함
         //folderListRVAdapter.addFolderList(appDB.folderDao().getFolderExceptDeletedFolder(DELETED) as ArrayList)
-        //appDB.folderDao().get---처리
+        var popupFolderList=ArrayList<Folder>()
+        AppDatabase.getInstance(this)!!.folderDao().getFolderList(userID).observe(this){
+            popupFolderList.addAll(it)
+        }
+        AppDatabase.getInstance(this)!!.folderDao().getHiddenFolder(userID).observe(this){
+            popupFolderList.addAll(it)
+        }
+        folderListRVAdapter.addFolderList(popupFolderList)
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수
