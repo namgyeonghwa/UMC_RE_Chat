@@ -21,6 +21,8 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     private val tag = "ACT/FOLDER-CONTENT"
 
     override fun initAfterBinding() {
+        Log.d("AlluserIDCheck", "onChatAct $userID")
+
         initData()
         initRecyclerView()
         initClickListener()
@@ -49,8 +51,9 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
 
         // FolderContent 데이터를 RecyclerView 어댑터와 연결
         // userID: kakaoUserIdx, folderInfo.idx: folder index
-        database.folderContentDao().getFolderContent(userID, folderInfo.idx).observe(this) {
+        database.folderContentDao().getFolderChat(userID, folderInfo.idx).observe(this) {
             folderContentRVAdapter.addItem(it)
+            Log.d("folderDatacheck: ", it.toString())
         }
 
         // RecyclerView click listener 초기화

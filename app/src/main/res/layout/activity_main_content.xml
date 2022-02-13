@@ -149,15 +149,15 @@
         app:layout_constraintStart_toStartOf="@id/main_block_list_tv" />
 
     <!-- 하단 중앙 버튼 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="#FFFFFF"
-        android:translationZ="-1dp"
-        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
-        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"
-        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"
-        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:background="#FFFFFF"-->
+<!--        android:translationZ="-1dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"-->
+<!--        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"-->
+<!--        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />-->
 
     <ImageView
         android:id="@+id/main_folder_background_view"

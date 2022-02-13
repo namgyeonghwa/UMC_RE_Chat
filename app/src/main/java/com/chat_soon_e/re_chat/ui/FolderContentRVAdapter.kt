@@ -18,6 +18,7 @@ import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.entities.ChatList
 import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.local.AppDatabase
+import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 import java.text.SimpleDateFormat
 import java.util.*
@@ -25,7 +26,7 @@ import kotlin.collections.ArrayList
 
 class FolderContentRVAdapter(private val mContext: FolderContentActivity, private val size: Point, private val mItemClickListener: MyClickListener)
     : RecyclerView.Adapter<FolderContentRVAdapter.ViewHolder>() {
-    var chatList = ArrayList<ChatList>()
+    var chatList = ArrayList<FolderContent>()
     private lateinit var popupMenu: PopupMenu
     private val tag = "RV/FOLDER_CONTENT"
 
@@ -56,7 +57,7 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
 
     //AddData
     @SuppressLint("NotifyDataSetChanged")
-    fun addItem(chat: List<ChatList>){
+    fun addItem(chat: List<FolderContent>){
         chatList.clear()
         chatList.addAll(chat as ArrayList)
         notifyDataSetChanged()
@@ -82,18 +83,18 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(chat: ChatList) {
-            Log.d(tag, "chat.nickName: ${chat.nickName}")
+        fun bind(chat: FolderContent) {
+            Log.d(tag, "chat.nickName: ${chat.nickname}")
             Log.d(tag, "chat.message: ${chat.message}")
             Log.d(tag, "chat.postTime: ${chat.postTime}")
 
             binding.itemChatDefaultMessageTv.maxWidth = (size.x * 0.6f).toInt()
             binding.itemChatDefaultMessageTv.minHeight = (size.y * 0.05f).toInt()
 
-            binding.itemChatDefaultNameTv.text = chat.nickName
+            binding.itemChatDefaultNameTv.text = chat.nickname
             binding.itemChatDefaultMessageTv.text = chat.message
-            if(chat.profileImg==null||chat.profileImg=="null") binding.itemChatDefaultProfileIv.setImageResource(R.drawable.chat_defualt_profile)
-            else binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
+            if(chat.profileImgUrl==null||chat.profileImgUrl=="null") binding.itemChatDefaultProfileIv.setImageResource(R.drawable.chat_defualt_profile)
+            else binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImgUrl!!, mContext))
             binding.itemChatDefaultDateTimeTv.text = convertDate(binding, chat.postTime)
         }
     }

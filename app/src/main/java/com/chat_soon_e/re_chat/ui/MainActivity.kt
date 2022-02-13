@@ -51,7 +51,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        Log.d(tag, "onCreate()/userID: $userID, USER_ID: $USER_ID")
+       //Log.d(tag, "onCreate()/userID: $userID, USER_ID: $USER_ID")
+        Log.d("AlluserIDCheck", "onChatAct $userID")
 
 //        if(chatList.isEmpty()) {
 //            // 비어있는 경우에만 API 호출로 초기화한 뒤, 이후로는 RoomDB에서 관리하는 방식으로 진행
@@ -73,10 +74,10 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 Log.d(tag, "login error, 잘못된 접근")
             else{
                 val data=AppDatabase.getInstance(this)!!.userDao().getUsers()
-                if(data!=null)
+                if(data==null)
                     saveID(-1L)//오류 났을시 임시로 해주는 것
                 else
-                    data?.get(0)?.let { saveID(it.kakaoUserIdx) }
+                    data[0].let { saveID(it.kakaoUserIdx) }
                 userID=getID()
             }
         }

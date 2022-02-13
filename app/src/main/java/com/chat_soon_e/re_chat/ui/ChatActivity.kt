@@ -42,6 +42,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
     override fun initAfterBinding() {
         //initData()
+        Log.d("AlluserIDCheck", "onChatAct $userID")
         initFab()
         initData()
         initRecyclerView()
@@ -101,6 +102,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 chatRVAdapter.addItem(it)
                 chatList.clear()
                 chatList.addAll(it)
+
 //                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
                 binding.chatChatRecyclerView.scrollToPosition(0)
             }

@@ -39,10 +39,10 @@ interface FolderContentDao {
     fun deleteChat(folderIdx: Int, chatIdx: Int)
 
     //폴더의 모든 챗 가져오기, 검증
-    @Query("SELECT C.postTime, C.folderIdx, C.chatIdx, C.otherUserIdx, C.isChecked, C.message, C.groupName, C.status, C.isNew FROM ChatTable C INNER JOIN OtherUserTable OU ON C.otherUserIdx=OU.otherUserIdx INNER JOIN FolderContentTable FC ON C.chatIdx=FC.chatIdx INNER JOIN FolderTable F ON FC.folderIdx=F.idx WHERE OU.kakaoUserIdx= :user_id AND FC.folderIdx=:folder_id ORDER BY C.postTime DESC")
-    fun getFolderChat(user_id:Long, folder_id:Int):LiveData<List<ChatList>>
+    @Query("SELECT FI.folderName, OU.nickname, OU.image as profileImgUrl, C.message, C.postTime as postTime, C.chatIdx as chatIdx\n" +
+            "          FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx INNER JOIN FolderContentTable FC on C.chatIdx = FC.chatIdx INNER JOIN FolderTable FI on FC.folderIdx = FI.idx\n" +
+            "          WHERE OU.kakaoUserIdx = :userIdx AND FC.folderIdx = :folderIdx \n" +
+            "          ORDER BY C.postTime DESC;")
+    fun getFolderChat(userIdx:Long, folderIdx:Int):LiveData<List<com.chat_soon_e.re_chat.data.remote.chat.FolderContent>>
 
-    // 해당 폴더의 채팅 모두 불러오기
-    @Query("SELECT * FROM ChatTable C INNER JOIN OtherUserTable OU ON C.otherUserIdx = OU.otherUserIdx INNER JOIN FolderContentTable FC ON C.chatIdx = FC.chatIdx INNER JOIN FolderTable F ON FC.folderIdx = F.idx WHERE OU.kakaoUserIdx = :userIdx AND FC.folderIdx = :folderIdx ORDER BY C.postTime ASC")
-    fun getFolderContent(userIdx: Long, folderIdx: Int): LiveData<List<ChatList>>
 }

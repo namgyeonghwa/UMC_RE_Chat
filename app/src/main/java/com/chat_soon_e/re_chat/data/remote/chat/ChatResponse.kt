@@ -32,7 +32,8 @@ data class FolderContent(
     @SerializedName("profileImgUrl") val profileImgUrl: String?,
     @SerializedName("message") val message: String,
     @SerializedName("chat_date") val chatDate: String?,
-    @SerializedName("post_time") val postTime: String
+    @SerializedName("post_time") val postTime: String,
+    @SerializedName("chatIdx")val chatIdx:Int
 )
 
 // 차단된 톡방 목록 가져오기
