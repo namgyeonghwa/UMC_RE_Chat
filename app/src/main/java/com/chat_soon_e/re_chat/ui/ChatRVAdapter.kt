@@ -26,13 +26,12 @@ import kotlin.collections.ArrayList
 class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
-    private lateinit var popup: PopupMenu
     private val tag = "RV/CHAT"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
-        fun onRemoveChat(position: Int)
-        fun onDefaultChatLongClick(popupMenu: PopupMenu)
+        fun onRemoveChat(chatIdx: Int)
+//        fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int)
         fun onChooseChatClick(view: View, position: Int)
     }
 
@@ -70,18 +69,26 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     override fun getItemCount(): Int = chatList.size
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun removeChat(position: Int) {
+    fun removeChat(selectedChatIdxList: List<Int>) {
         //맨 위에 있는 position을 선택했을 때
 //        chatList.removeAt(position)
-        if(position == 0){
-            Log.d("$tag/position", "itemCount ${chatList.size}")
-            Log.d("$tag/position", "item $chatList")
-        }
-        notifyDataSetChanged()
-//
-//        notifyItemRangeChanged(position, itemCount);
-//        notifyItemRemoved(position)
+//        if(position == 0){
+//            Log.d("$tag/position", "itemCount ${chatList.size}")
+//            Log.d("$tag/position", "item $chatList")
+//        }
+        //맨 아래꺼 삭제했을 때 데이터 다 날라감
+        //예전에 위에서부터 새로운 아이템이 추가될때는 맨 처음 채팅을 제거했을 때 다 날라갔음
+        //현재는 맨 아래 getChatDao의 index가 0, 그렇다면 현재 불러와진 데이터의 인덱스는 어떻게 변할까? liveData
 
+        for(i in 0 until chatList.size - 1) {
+            for(j in 0 until selectedChatIdxList.size - 1) {
+                if (chatList[i].chatIdx == selectedChatIdxList[j]) chatList.removeAt(selectedChatIdxList[j])
+            }
+        }
+
+      //  notifyDataSetChanged()
+//        notifyItemRemoved(position)
+//        notifyItemRangeChanged(position, itemCount)
     }
 
     //AddData
@@ -139,8 +146,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     }
 
     fun setChecked(position: Int) {
+        Log.d("chatPositionCheck", "선택되고 나기전 아이템의 인덱스 ${chatList[position]}")
         chatList[position].isChecked = !chatList[position].isChecked
         notifyItemChanged(position)
+        Log.d("chatPositionCheck", "선택되고 난 후의 아이템 인덱스 $position")
     }
 
     // 아이템뷰가 선택되었는지를 알려주는 함수
@@ -154,25 +163,15 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     // 디폴트 뷰홀더
     inner class DefaultViewHolder(private val binding: ItemChatBinding): RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.itemChatDefaultMessageTv.setOnLongClickListener {
-                toggleItemSelected(itemView, position = bindingAdapterPosition)
-                popup = PopupMenu(mContext, binding.itemChatDefaultMessageTv, Gravity.START, 0, R.style.MyFolderBottomPopupMenuTheme)
-                popup.menuInflater.inflate(R.menu.popup_chat_option_menu, popup.menu)
-                popup.setOnMenuItemClickListener { item ->
-                    when (item?.itemId) {
-                        R.id.popup_chat_option_menu_delete -> {
-                            // 삭제하기
-                            Log.d(tag, "position: $bindingAdapterPosition")
-                            mItemClickListener.onRemoveChat(bindingAdapterPosition)
-                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
-                            removeChat(bindingAdapterPosition)
-                        }
-                    }
-                    false
-                }
-                mItemClickListener.onDefaultChatLongClick(popup)
-                return@setOnLongClickListener false
-            }
+//            binding.itemChatDefaultMessageTv.setOnLongClickListener {
+//                Log.d(tag, "absoluteAdapterPosition: $absoluteAdapterPosition")
+//                Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
+//                Log.d(tag, "chatList[bindingAdapterPosition]: ${chatList[bindingAdapterPosition]}")
+//                Log.d(tag, "chatList[absoluteAdapterPosition]: ${chatList[absoluteAdapterPosition]}")
+//                toggleItemSelected(itemView, position = bindingAdapterPosition)
+//                mItemClickListener.onDefaultChatLongClick(binding, chatList[absoluteAdapterPosition].chatIdx)
+//                return@setOnLongClickListener false
+//            }
         }
 
         @SuppressLint("SimpleDateFormat")
@@ -188,6 +187,16 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
             binding.itemChatDefaultMessageTv.text = chat.message
             binding.itemChatDefaultDateTimeTv.text = convertDateAtDefault(binding, chat.postTime)
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
+
+            if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.postTime, bindingAdapterPosition)) {
+                // 다음 날로 날짜가 바뀐 경우
+                // 혹은 날짜가 1일 이상 차이날 때
+                binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatDefaultNewDateTimeTv.text = setNewDate(chat.postTime)
+            } else {
+                // 날짜가 바뀐 게 아닌 경우
+                binding.itemChatDefaultNewDateTimeLayout.visibility = View.GONE
+            }
         }
     }
 
@@ -199,6 +208,13 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
                 toggleItemSelected(itemView, position = bindingAdapterPosition)
                 mItemClickListener.onChooseChatClick(itemView, position = bindingAdapterPosition)
             }
+
+//            binding.itemChatChooseDeleteIv.setOnClickListener {
+//                Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
+//                Log.d(tag, "chatList[bindingAdapterPosition].chatIdx: ${chatList[bindingAdapterPosition].chatIdx}")
+//                mItemClickListener.onRemoveChat(chatList[bindingAdapterPosition].chatIdx)
+//                removeChat(chatList[bindingAdapterPosition].chatIdx)
+//            }
         }
         @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
@@ -214,15 +230,15 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
             binding.itemChatChooseDateTimeTv.text = convertDateAtChoose(binding, chat.postTime)
             binding.itemChatChooseProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
-//            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime, absoluteAdapterPosition)) {
-//                // 다음 날로 날짜가 바뀐 경우
-//                // 혹은 날짜가 1일 이상 차이날 때
-//                binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
-//                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.postTime)
-//            } else {
-//                // 날짜가 바뀐 게 아닌 경우
-//                binding.itemChatChooseNewDateTimeLayout.visibility = View.GONE
-//            }
+            if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.postTime, bindingAdapterPosition)) {
+                // 다음 날로 날짜가 바뀐 경우
+                // 혹은 날짜가 1일 이상 차이날 때
+                binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.postTime)
+            } else {
+                // 날짜가 바뀐 게 아닌 경우
+                binding.itemChatChooseNewDateTimeLayout.visibility = View.GONE
+            }
         }
     }
 
@@ -233,7 +249,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
         val today = Date()
 
         val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        val dateAsDate = simpleDateFormat.parse(date)
+        val dateAsDate = simpleDateFormat.parse(date)!!
 //        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
 //        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
 
@@ -246,13 +262,18 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
-            val time = SimpleDateFormat("yyyy년 M월 d일")
+            val time = SimpleDateFormat("a h:mm")
             str = time.format(dateAsDate).toString()
-
-            binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
-            binding.itemChatDefaultNewDateTimeTv.text = str
         }
         return str
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun setNewDate(date: String): String {
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateAsDate = simpleDateFormat.parse(date)!!
+        val newDate = SimpleDateFormat("yyyy년 M월 d일 EE")
+        return newDate.format(dateAsDate).toString()
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -262,7 +283,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
         val today = Date()
 
         val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        val dateAsDate = simpleDateFormat.parse(date)
+        val dateAsDate = simpleDateFormat.parse(date)!!
 //        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
 //        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
 
@@ -277,9 +298,6 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
             // date.format(time_formatter)
             val time = SimpleDateFormat("M월 d일")
             str = time.format(dateAsDate).toString()
-
-            binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
-            binding.itemChatChooseNewDateTimeTv.text = str
         }
         return str
     }
@@ -290,7 +308,8 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
         val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val currentDateAsDate = simpleDateFormat1.parse(date)
-        val previousDateAsDate = simpleDateFormat1.parse(chatList[position - 1].postTime)
+
+        val previousDateAsDate = simpleDateFormat1.parse(chatList[position + 1].postTime)
 
         val previousLocalDate = previousDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         val currentLocalDate = currentDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -316,7 +335,6 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 //            val currentLocalDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
 //        }
 
-        Log.d(tag, "isNextDay()/differenceDate: $differenceDate")
         Log.d(tag, "isNextDay()/period: $period")
         return period >= 1
     }

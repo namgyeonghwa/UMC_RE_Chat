@@ -16,6 +16,7 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
         //초기 설정
         initData()
         initRecyclerView()
+        initClickListener()
     }
 
     private fun initData() {
@@ -42,6 +43,11 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
             }
         })
         binding.blockListRecyclerView.adapter=blockListRVAdapter
+    }
 
+    private fun initClickListener() {
+        binding.blockListBackIv.setOnClickListener {
+            finish()
+        }
     }
 }

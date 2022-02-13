@@ -135,18 +135,20 @@
         app:layout_constraintHorizontal_bias="0.65"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 삭제하기 -->
+    <!-- 차단하기 -->
     <ImageView
-        android:id="@+id/main_block_iv"
+        android:id="@+id/main_delete_iv"
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="10dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/navi_delete"
+        android:src="@drawable/selector_delete"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/main_block_list_tv"
-        app:layout_constraintEnd_toEndOf="@id/main_block_list_tv"
-        app:layout_constraintStart_toStartOf="@id/main_block_list_tv" />
+        android:translationZ="10dp"
+        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
+        app:layout_constraintEnd_toEndOf="@id/main_my_folder_tv"
+        app:layout_constraintStart_toStartOf="@id/main_my_folder_tv"
+        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />
 
     <!-- 하단 중앙 버튼 -->
 <!--    <View-->
@@ -202,19 +204,19 @@
         app:layout_constraintTop_toTopOf="@id/main_folder_background_view"
         app:layout_constraintVertical_bias="0.47" />
 
-    <!-- 차단하기 -->
+    <!-- 삭제하기 -->
     <ImageView
-        android:id="@+id/main_delete_iv"
+        android:id="@+id/main_block_iv"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="0dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/navi_block"
+        android:src="@drawable/selector_block"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
-        app:layout_constraintEnd_toEndOf="@id/main_my_folder_tv"
-        app:layout_constraintStart_toStartOf="@id/main_my_folder_tv"
-        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view" />
+        app:layout_constraintBottom_toTopOf="@id/main_block_list_tv"
+        app:layout_constraintEnd_toEndOf="@id/main_block_list_tv"
+        app:layout_constraintStart_toStartOf="@id/main_block_list_tv"
+         />
 
     <!-- 내 폴더로 -->
     <ImageView

@@ -25,6 +25,7 @@ data class Chat(
     @SerializedName("postTime") var postTime: String
 )
 
+
 // 차단된 톡방 목록 가져오기
 data class BlockedChatList(
     @SerializedName("blocked_name") val blockedName: String,
@@ -52,6 +53,8 @@ data class FolderChat(
     val nickname:String,
     val profileImgUrl: String,
     val message:String,
-    @SerializedName("chat_date")val chatDate:Date,
+    //@SerializedName("chat_date")val chatDate:Date,
     @SerializedName("post_time")val postTime:Date,
+    @SerializedName("chatIdx")val chatIdx:Int
+
 )

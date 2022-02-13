@@ -204,8 +204,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainContent.mainDeleteIv.visibility = View.VISIBLE
                 binding.mainContent.mainMyFolderIv.visibility = View.GONE
                 binding.mainContent.mainBlockIv.visibility = View.VISIBLE
-                binding.mainContent.mainBlockListTv.text="삭제"
-                binding.mainContent.mainMyFolderTv.text="차단"
+                binding.mainContent.mainBlockListTv.text="차단"
+                binding.mainContent.mainMyFolderTv.text="삭제"
             }
             // 모든 데이터의 viewType 바꿔주기
             mainRVAdapter.setViewType(currentMode = it)
