@@ -25,17 +25,6 @@ data class Chat(
     @SerializedName("postTime") var postTime: String
 )
 
-// 폴더 안의 채팅 가져오기
-data class FolderContent(
-    @SerializedName("folderName") val folderName: String,
-    @SerializedName("nickname") val nickname: String,
-    @SerializedName("profileImgUrl") val profileImgUrl: String?,
-    @SerializedName("message") val message: String,
-    @SerializedName("chat_date") val chatDate: String?,
-    @SerializedName("post_time") val postTime: String,
-    @SerializedName("chatIdx")val chatIdx:Int
-)
-
 // 차단된 톡방 목록 가져오기
 data class BlockedChatList(
     @SerializedName("blocked_name") val blockedName: String,
