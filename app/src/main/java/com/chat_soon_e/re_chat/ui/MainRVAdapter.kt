@@ -26,8 +26,8 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     var database = AppDatabase.getInstance(context)!!
-    private val userID=getID()
-    private val tag = "RVADAPTER/MAIN"
+    private val userID = getID()
+    private val tag = "RV/MAIN"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -220,7 +220,6 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
-
             //틀릴 수도 있음!
             if(chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null ){
                 binding.itemChatListProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, context))
@@ -236,27 +235,32 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
 
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun convertDate(date :String): String{
+    private fun convertDate(date :String): String {
         val str: String
-        val today = Date()
+        val today = Calendar.getInstance()
+        Log.d(tag, "date: $date")
 
-        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
-        val dateAsDate = simpleDateFormat1.parse(date)
-        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
-        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
+        // 2022-02-13T02:35:37+09:00
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateAsDate = simpleDateFormat.parse(date)
+        Log.d(tag, "dateAsDate: $dateAsDate")
 
-        // 오늘이 아니라면 날짜만
-        if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
-            val time = SimpleDateFormat("a hh:mm", Locale.KOREAN)
-            str = time.format(dateAsDate).toString()
-        } else{
+        val diffDay = (today.time.time - dateAsDate!!.time) / (60 * 60 * 24 * 1000)
+
+        str = if(diffDay < 0) {
+            // 오늘인 경우
+            val sdf = SimpleDateFormat("a H:mm")
+            sdf.format(dateAsDate).toString()
+        } else {
             // simpleDateFormat은 thread에 안전하지 않습니다.
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
-            val time = SimpleDateFormat("MM월 DD일")
-            str=time.format(dateAsDate).toString()
+            val time = SimpleDateFormat("M월 d일")
+            time.format(dateAsDate).toString()
         }
+
+        Log.d(tag, "str: $str")
         return str
     }
 }

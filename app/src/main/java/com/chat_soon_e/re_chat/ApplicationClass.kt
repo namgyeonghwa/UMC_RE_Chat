@@ -48,7 +48,7 @@ class ApplicationClass : Application() {
 
         //캐시 저장소로부터 이미지 불러오기
         //추후 진짜 캐시를 사용해 볼 것
-        fun loadBitmap(name: String,context:Context): Bitmap? {
+        fun loadBitmap(name: String, context:Context): Bitmap? {
             val file = File(context.cacheDir.toString())
             val files = file.listFiles()
             var list: String=""

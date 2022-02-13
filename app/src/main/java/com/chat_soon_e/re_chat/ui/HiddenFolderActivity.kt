@@ -4,33 +4,38 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Insets
 import android.graphics.Point
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.HIDDEN
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.entities.Icon
 import com.chat_soon_e.re_chat.data.local.AppDatabase
+import com.chat_soon_e.re_chat.data.remote.folder.FolderService
+import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
+import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
+import com.chat_soon_e.re_chat.ui.view.UnhideFolderView
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
 
-class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHiddenFolderBinding::inflate) {
-    private var iconList = ArrayList<Icon>()
-
+class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHiddenFolderBinding::inflate),
+    HiddenFolderListView, UnhideFolderView {
     private lateinit var database: AppDatabase
     private lateinit var hiddenFolderRVAdapter: HiddenFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
-    private val userID=getID()
+
+    private var hiddenFolderList = ArrayList<Folder>()
+    private var iconList = ArrayList<Icon>()
+    private val userID = getID()
+    private val tag = "ACT/HIDDEN-FOLDER"
 
     override fun initAfterBinding() {
         initFolder()
@@ -41,6 +46,9 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     private fun initFolder() {
         database = AppDatabase.getInstance(this)!!
 
+        val folderService = FolderService()
+        folderService.getHiddenFolderList(this, userID)
+
         // RecyclerView 초기화
         hiddenFolderRVAdapter = HiddenFolderRVAdapter(this)
         binding.hiddenFolderListRecyclerView.adapter = hiddenFolderRVAdapter
@@ -48,11 +56,15 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         database.folderDao().getHiddenFolder(userID).observe(this){
             hiddenFolderRVAdapter.addFolderList(it as ArrayList<Folder>)
         }
+
         hiddenFolderRVAdapter.setMyItemClickListener(object: HiddenFolderRVAdapter.MyItemClickListener {
             // 폴더 숨김 해제
             override fun onShowFolder(folderIdx: Int) {
                 // 데이터베이스에 폴더 상태를 HIDDEN에서 ACTIVE로 바꿔준다.
                 database.folderDao().updateFolderHide(folderIdx)
+
+                val folderService = FolderService()
+                folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
             // 폴더 삭제
@@ -77,6 +89,7 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
             override fun onFolderLongClick(popupMenu: PopupMenu) {
                 popupMenu.show()
             }
+
             // 폴더 이름 롱클릭 시 이름 변경
             override fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx: Int) {
                 changeFolderName(itemHiddenFolderBinding, folderIdx)
@@ -188,5 +201,26 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
 
     override fun onBackPressed() {
         finish()
+    }
+
+    override fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<HiddenFolderList>) {
+        Log.d(tag, "onHiddenFolderListSuccess()/hiddenFolderList: $hiddenFolderList")
+//        for(i in 0 until hiddenFolderList.size) {
+//            database.folderDao().insert(Folder(userID, hiddenFolderList[i].folderName, hiddenFolderList[i].folderImg))
+//            this.hiddenFolderList.add(Folder(userID, hiddenFolderList[i].folderName, hiddenFolderList[i].folderImg))
+//        }
+//        hiddenFolderRVAdapter.addFolderList(this.hiddenFolderList)
+    }
+
+    override fun onHiddenFolderListFailure(code: Int, message: String) {
+        Log.d(tag, "onHiddenFolderListFailure()/code: $code, message: $message")
+    }
+
+    override fun onUnhideFolderSuccess() {
+        Log.d(tag, "onUnhideFolderSuccess()/hiddenFolderList: $hiddenFolderList")
+    }
+
+    override fun onUnhideFolderFailure(code: Int, message: String) {
+        Log.d(tag, "onUnhideFolderFailure()/code: $code, message: $message")
     }
 }

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
@@ -122,7 +123,9 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
         fun bind(folder: Folder) {
             currentPosition = bindingAdapterPosition
             itemHiddenFolderBinding.itemHiddenFolderTv.text = folder.folderName
-            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg)
+//            if(folder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(folder.folderImg!!, mContext))
+//            else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.ic_baseline_folder_24)
+            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg!!)
         }
     }
 }

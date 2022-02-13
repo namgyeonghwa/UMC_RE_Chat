@@ -1,13 +1,17 @@
 package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
+import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.Folder
+import com.chat_soon_e.re_chat.databinding.ActivityMainBinding
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
 
-class FolderListRVAdapter(): RecyclerView.Adapter<FolderListRVAdapter.ViewHolder>() {
+class FolderListRVAdapter(private val mContext: Context): RecyclerView.Adapter<FolderListRVAdapter.ViewHolder>() {
     private val folderList = ArrayList<Folder>()
 
     // 클릭 인터페이스
@@ -48,8 +52,10 @@ class FolderListRVAdapter(): RecyclerView.Adapter<FolderListRVAdapter.ViewHolder
 
     inner class ViewHolder(val binding: ItemFolderListBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(folder: Folder) {
-            binding.itemFolderListIv.setImageResource(folder.folderImg)
+//            if(folder.folderImg != null) binding.itemFolderListIv.setImageBitmap(loadBitmap(folder.folderImg!!, mContext))
+//            else binding.itemFolderListIv.setImageResource(R.drawable.ic_baseline_folder_24)
             binding.itemFolderListTv.text = folder.folderName
+            binding.itemFolderListIv.setImageResource(folder.folderImg!!)
         }
     }
 }

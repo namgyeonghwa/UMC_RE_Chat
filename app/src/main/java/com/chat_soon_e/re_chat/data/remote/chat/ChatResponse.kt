@@ -22,12 +22,29 @@ data class Chat(
     @SerializedName("postTime") var postTime: String
 )
 
+//data class ChatList(
+//    @SerializedName("chatIdx") var chatIdx: Int,
+//    @SerializedName("nickname") var nickname: String,
+//    @SerializedName("profileImgUrl") var profileImgUrl: String?,
+//    @SerializedName("message") var message: String,
+//    @SerializedName("post_time") var postTime: String,
+//    @SerializedName("groupName") var groupName: String?
+//)
+
 // 폴더 안의 채팅 가져오기
-data class FolderChat(
+data class FolderContent(
     @SerializedName("folderName") val folderName: String,
     @SerializedName("nickname") val nickname: String,
     @SerializedName("profileImgUrl") val profileImgUrl: String?,
     @SerializedName("message") val message: String,
-    @SerializedName("chat_date") val chatDate: String,
+    @SerializedName("chat_date") val chatDate: String?,
     @SerializedName("post_time") val postTime: String
+)
+
+// 차단된 톡방 목록 가져오기
+data class BlockedChatList(
+    @SerializedName("blocked_name") val blockedName: String,
+    @SerializedName("blocked_profileImg") val blockedProfileImg: String,
+    @SerializedName("groupName") val groupName: String?,
+    @SerializedName("status") val status: String,
 )

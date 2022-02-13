@@ -5,7 +5,7 @@ import com.chat_soon_e.re_chat.data.entities.ChatList
 
 @Dao
 interface ChatListDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(chatList:ChatList)
 
     @Update
@@ -13,6 +13,9 @@ interface ChatListDao {
 
     @Delete
     fun delete(chatList: ChatList)
+
+    @Query("DELETE FROM ChatListTable")
+    fun allDelete()
 
     //chatList insertTable을 써야 가능한 함수!
     //해당 chatIdx isNew 바꾸기

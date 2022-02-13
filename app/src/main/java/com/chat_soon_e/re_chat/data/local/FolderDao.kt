@@ -12,11 +12,15 @@ interface FolderDao {
     @Insert
     fun insert(folder: Folder)
 
+    // 폴더가 있는지 없는지 검사하기 위해
+    @Query("SELECT COUNT(*) FROM FolderTable WHERE kakaoUserIdx = :kakaoUserIdx")
+    fun getFolderCount(kakaoUserIdx: Long): Int
+
     //모든 폴더목록 조회, 검증된
     @Query("SELECT * " +
             "FROM FolderTable\n" +
             "WHERE kakaoUserIdx = :userIdx AND status != 'HIDDEN';")
-    fun getFolderList(userIdx:Long): LiveData<List<Folder>>//liveData?
+    fun getFolderList(userIdx: Long): LiveData<List<Folder>>//liveData?
 
     //숨긴 폴더 목록 조회, 검증된
     @Query("SELECT *\n" +
@@ -51,6 +55,7 @@ interface FolderDao {
     //폴더 삭제(폴더 삭제시 순서대로 실행), 검증된
     @Query("DELETE FROM FolderContentTable WHERE folderIdx = :folderIdx")
     fun deleteFolderContent(folderIdx:Int)
+
     @Query("DELETE FROM FolderTable\n" +
             "       WHERE idx = :idx;")
     fun deleteFolder(idx: Int)

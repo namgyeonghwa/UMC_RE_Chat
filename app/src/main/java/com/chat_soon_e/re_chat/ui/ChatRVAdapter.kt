@@ -27,8 +27,8 @@ import kotlin.collections.ArrayList
 class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
-    private val tag = "RV/CHAT"
     private lateinit var popup: PopupMenu
+    private val tag = "RV/CHAT"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -198,7 +198,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
 
             binding.itemChatDefaultNameTv.text = chat.nickName
             binding.itemChatDefaultMessageTv.text = chat.message
-            binding.itemChatDefaultDateTimeTv.text = convertDate(chat.postTime)
+            binding.itemChatDefaultDateTimeTv.text = convertDateAtDefault(binding, chat.postTime)
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
 //            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime!!, absoluteAdapterPosition)) {
@@ -230,60 +230,84 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val mItemClickLi
 
             binding.itemChatChooseNameTv.text = chat.nickName
             binding.itemChatChooseMessageTv.text = chat.message
-            binding.itemChatChooseDateTimeTv.text = convertDate(chat.postTime)
+            binding.itemChatChooseDateTimeTv.text = convertDateAtChoose(binding, chat.postTime)
             binding.itemChatChooseProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
-            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime, absoluteAdapterPosition)) {
-                // 다음 날로 날짜가 바뀐 경우
-                // 혹은 날짜가 1일 이상 차이날 때
-                binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
-                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.postTime)
-            } else {
-                // 날짜가 바뀐 게 아닌 경우
-                binding.itemChatChooseNewDateTimeLayout.visibility = View.GONE
-            }
+//            if(absoluteAdapterPosition > 0 && isNextDay(chat.postTime, absoluteAdapterPosition)) {
+//                // 다음 날로 날짜가 바뀐 경우
+//                // 혹은 날짜가 1일 이상 차이날 때
+//                binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
+//                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.postTime)
+//            } else {
+//                // 날짜가 바뀐 게 아닌 경우
+//                binding.itemChatChooseNewDateTimeLayout.visibility = View.GONE
+//            }
         }
     }
 
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun convertDate(date :String): String {
+    private fun convertDateAtDefault(binding: ItemChatBinding, date :String): String {
         val str: String
         val today = Date()
 
-        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
-        val dateAsDate = simpleDateFormat1.parse(date)
-        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
-        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateAsDate = simpleDateFormat.parse(date)
+//        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
+//        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
 
         // 오늘이 아니라면 날짜만
         if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
-            val time = SimpleDateFormat("a hh:mm")
+            val time = SimpleDateFormat("a h:mm")
             str = time.format(dateAsDate).toString()
         } else{
             // simpleDateFormat은 thread에 안전하지 않습니다.
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
-            val time = SimpleDateFormat("MM월 DD일")
-            str=time.format(dateAsDate).toString()
+            val time = SimpleDateFormat("yyyy년 M월 d일")
+            str = time.format(dateAsDate).toString()
+
+            binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
+            binding.itemChatDefaultNewDateTimeTv.text = str
         }
         return str
     }
 
-    private fun setNewDate(date: String): String {
-        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
-        val dateAsDate = simpleDateFormat1.parse(date)
-        val simpleDateFormat2 = SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREAN)
+    @SuppressLint("SimpleDateFormat")
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun convertDateAtChoose(binding: ItemChatChooseBinding, date :String): String {
+        val str: String
+        val today = Date()
 
-        return simpleDateFormat2.format(dateAsDate!!)
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateAsDate = simpleDateFormat.parse(date)
+//        val simpleDateFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
+//        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
+
+        // 오늘이 아니라면 날짜만
+        if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
+            val time = SimpleDateFormat("a h:mm")
+            str = time.format(dateAsDate).toString()
+        } else{
+            // simpleDateFormat은 thread에 안전하지 않습니다.
+            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
+            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
+            // date.format(time_formatter)
+            val time = SimpleDateFormat("M월 d일")
+            str = time.format(dateAsDate).toString()
+
+            binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
+            binding.itemChatChooseNewDateTimeTv.text = str
+        }
+        return str
     }
 
     @SuppressLint("SimpleDateFormat")
     private fun isNextDay(date: String, position: Int): Boolean {
         val period: Int
 
-        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREAN)
+        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val currentDateAsDate = simpleDateFormat1.parse(date)
         val previousDateAsDate = simpleDateFormat1.parse(chatList[position - 1].postTime)
 
