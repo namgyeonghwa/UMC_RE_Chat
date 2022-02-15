@@ -68,35 +68,30 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
     override fun getItemCount(): Int = chatList.size
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun removeChat(selectedChatIdxList: List<Int>) {
-        //맨 위에 있는 position을 선택했을 때
-//        chatList.removeAt(position)
-//        if(position == 0){
-//            Log.d("$tag/position", "itemCount ${chatList.size}")
-//            Log.d("$tag/position", "item $chatList")
-//        }
-        //맨 아래꺼 삭제했을 때 데이터 다 날라감
-        //예전에 위에서부터 새로운 아이템이 추가될때는 맨 처음 채팅을 제거했을 때 다 날라갔음
-        //현재는 맨 아래 getChatDao의 index가 0, 그렇다면 현재 불러와진 데이터의 인덱스는 어떻게 변할까? liveData
-
-        for(i in 0 until chatList.size - 1) {
-            for(j in 0 until selectedChatIdxList.size - 1) {
-                if (chatList[i].chatIdx == selectedChatIdxList[j]) chatList.removeAt(selectedChatIdxList[j])
-            }
-        }
-
-      //  notifyDataSetChanged()
-//        notifyItemRemoved(position)
-//        notifyItemRangeChanged(position, itemCount)
-    }
-
     //AddData
     @SuppressLint("NotifyDataSetChanged")
     fun addItem(chat: List<ChatList>){
         chatList.clear()
         chatList.addAll(chat as ArrayList)
 
+        notifyDataSetChanged()
+    }
+    // selectedItemList 삭제
+    @RequiresApi(Build.VERSION_CODES.N)
+    @SuppressLint("NotifyDataSetChanged")
+    fun removeSelectedItemList():ChatList? {
+        var database=AppDatabase.getInstance(mContext)!!
+        val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
+        chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
+        // DB 업데이트
+        for(i in selectedList){
+            database.chatDao().deleteByChatIdx(i.chatIdx)
+            Log.d("chatDataCheckLiveData", "deletedItem: ${i.chatIdx}")
+        }
+        if(chatList.isNotEmpty())
+            return chatList[0]
+        else
+            return null
         notifyDataSetChanged()
     }
 

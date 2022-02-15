@@ -45,12 +45,26 @@ interface ChatDao {
             "ORDER BY C.postTime DESC")
     fun getOneChatList(userIdx:Long, chatIdx:Int):LiveData<List<ChatList>>
 
+    //livedata 없이 갠톡 채팅 가져오기, 검증된
+    @Query("SELECT C.chatIdx, OU.nickname as nickName, C.groupName, OU.image as profileImg, C.message, C.postTime, C.isNew\n" +
+            "    FROM ChatTable AS C INNER JOIN OtherUserTable AS OU on C.otherUserIdx = OU.otherUserIdx\n" +
+            "    WHERE OU.kakaoUserIdx = :userIdx AND C.status != 'DELETED' AND C.otherUserIdx IN (SELECT otherUserIdx FROM ChatTable WHERE chatIdx = :chatIdx) AND groupName is 'null'\n" +
+            "ORDER BY C.postTime DESC")
+    fun getOneChatNoLiveList(userIdx:Long, chatIdx:Int):List<ChatList>
+
     //단톡 채팅 가져오기, 검증된
     @Query("SELECT C.chatIdx, OU.nickname as nickName, C.groupName, OU.image as profileImg, C.message, C.postTime, C.isNew" +
             " FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx" +
             " WHERE OU.kakaoUserIdx = :userIdx AND C.status != 'DELETED' AND groupName = (SELECT groupName FROM ChatTable WHERE chatIdx = :chatIdx)" +
             " ORDER BY C.postTime DESC")
     fun getOrgChatList(userIdx:Long, chatIdx: Int):LiveData<List<ChatList>>
+
+    //livedata 없이 갠톡 채팅 가져오기, 검증된
+    @Query("SELECT C.chatIdx, OU.nickname as nickName, C.groupName, OU.image as profileImg, C.message, C.postTime, C.isNew" +
+            " FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx" +
+            " WHERE OU.kakaoUserIdx = :userIdx AND C.status != 'DELETED' AND groupName = (SELECT groupName FROM ChatTable WHERE chatIdx = :chatIdx)" +
+            " ORDER BY C.postTime DESC")
+    fun getOrgChatNoLiveList(userIdx:Long, chatIdx: Int):List<ChatList>
 
     //message==status로 가져옴
     @Query("SELECT DISTINCT OU.nickname AS blockedName, OU.image AS blockedProfileImg, C.groupName AS groupName, OU.status AS status" +

@@ -135,7 +135,7 @@
         app:layout_constraintHorizontal_bias="0.65"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 차단하기 -->
+    <!-- 삭제하기 -->
     <ImageView
         android:id="@+id/main_delete_iv"
         android:layout_width="28dp"
@@ -144,7 +144,7 @@
         android:scaleType="fitCenter"
         android:src="@drawable/selector_delete"
         android:visibility="gone"
-        android:translationZ="10dp"
+        android:translationZ="1dp"
         app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintEnd_toEndOf="@id/main_my_folder_tv"
         app:layout_constraintStart_toStartOf="@id/main_my_folder_tv"
@@ -204,7 +204,7 @@
         app:layout_constraintTop_toTopOf="@id/main_folder_background_view"
         app:layout_constraintVertical_bias="0.47" />
 
-    <!-- 삭제하기 -->
+    <!-- 차단하기 -->
     <ImageView
         android:id="@+id/main_block_iv"
         android:layout_width="40dp"
@@ -221,9 +221,9 @@
     <!-- 내 폴더로 -->
     <ImageView
         android:id="@+id/main_my_folder_iv"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginBottom="5dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginBottom="6dp"
         android:visibility="visible"
         android:scaleType="fitCenter"
         android:src="@drawable/selector_my_folder"
@@ -266,9 +266,9 @@
         android:layout_height="match_parent"
         android:background="@color/background_gray"
         android:visibility="invisible"
+        android:translationZ="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
