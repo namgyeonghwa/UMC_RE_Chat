@@ -113,7 +113,9 @@ class SplashActivity: AppCompatActivity(), UserView {
             } else if (token != null) {
                 Log.i(tag, "카카오계정으로 로그인 성공 ${token.accessToken}")
 //                binding.splashKakaoIv.visibility = View.INVISIBLE
-                binding.splashKakaoBtn.visibility = View.INVISIBLE
+                runOnUiThread {
+                    binding.splashKakaoBtn.visibility = View.INVISIBLE
+                }
                 saveUserInfo("login")
             }
         }
@@ -133,8 +135,9 @@ class SplashActivity: AppCompatActivity(), UserView {
                 } else if (token != null) {
                     Log.i(tag, "카카오톡으로 로그인 성공 ${token.accessToken}")
 //                    binding.splashKakaoIv.visibility=View.INVISIBLE
-                    binding.splashKakaoBtn.visibility=View.INVISIBLE
-
+                    runOnUiThread {
+                        binding.splashKakaoBtn.visibility = View.INVISIBLE
+                    }
                     saveUserInfo("login")
                 }
             }

@@ -6,13 +6,12 @@ import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.PopupMenu
-import androidx.lifecycle.LiveData
+import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityFolderContentBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
-
 
 class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(ActivityFolderContentBinding::inflate) {
     private lateinit var database: AppDatabase
@@ -97,6 +96,4 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
             finish()
         }
     }
-
-
 }

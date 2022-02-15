@@ -80,30 +80,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 //                AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
             }
 
-//            // 채팅 롱클릭 시 팝업 메뉴 뜨도록
-//            override fun onDefaultChatLongClick(itemBinding: ItemChatBinding, chatIdx: Int) {
-//                chatRVAdapter.clearSelectedItemList()
-//
-//                val popupMenu = PopupMenu(this@ChatActivity, itemBinding.itemChatDefaultMessageTv, Gravity.END, 0, R.style.MyFolderBottomPopupMenuTheme)
-//                popupMenu.menuInflater.inflate(R.menu.popup_chat_option_menu, popupMenu.menu)
-//                popupMenu.setOnMenuItemClickListener { item ->
-//                    when (item?.itemId) {
-//                        R.id.popup_chat_option_menu_delete -> {
-//                            // 삭제하기
-////                            mItemClickListener.onRemoveChat(chatIdx)
-//                            AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(chatIdx)
-////                            AppDatabase.getInstance(mContext)!!.chatDao().deleteByChatIdx(chatList[bindingAdapterPosition].chatIdx)
-//                            chatRVAdapter.removeChat(chatIdx)
-//
-////                            // 데이터베이스에서 삭제
-////                            AppDatabase.getInstance(this@ChatActivity)!!.chatListDao().deleteChatListByIdx(chatIdx)
-//                        }
-//                    }
-//                    false
-//                }
-//                popupMenu.show()
-//            }
-
             // 선택 모드
             override fun onChooseChatClick(view: View, position: Int) {
                 chatRVAdapter.setChecked(position)
@@ -126,23 +102,48 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
+
+
+        //굿굿
         if(chatListData.groupName == "null")
                 database.chatDao().getOneChatList(userID, chatListData.chatIdx).observe(this) {
-                    chatRVAdapter.addItem(it)
-                    chatList.clear()
-                    chatList.addAll(it)
-//                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
-                    Log.d("chatPositionCheck", "db가 변해서 변한 아이템들, 개인\n $it")
-                    binding.chatChatRecyclerView.scrollToPosition(0)
+                    if(it.isEmpty()){
+                        //굿
+                        Log.d("chatDataCheckLiveData: ","NULL, get$it,id: ${chatListData.chatIdx}")
+                        var data=database.chatDao().getOneChatNoLiveList(userID, chatListData.chatIdx)
+                        Log.d("chatDataCheckLiveData: ","with No LiveData, get$data")
+                        chatRVAdapter.addItem(data)
+                        chatList.clear()
+                        chatList.addAll(data)
+                        binding.chatChatRecyclerView.scrollToPosition(0)
+                    }
+                    else{
+                        chatRVAdapter.addItem(it)
+                        chatList.clear()
+                        chatList.addAll(it)
+                        binding.chatChatRecyclerView.scrollToPosition(0)
+                    }
+
                 }
             else
                 database.chatDao().getOrgChatList(userID, chatListData.chatIdx).observe(this) {
-                    chatRVAdapter.addItem(it)
-                    chatList.clear()
-                    chatList.addAll(it)
-//                binding.chatChatRecyclerView.smoothScrollToPosition(chatRVAdapter.itemCount - 1)
-                    binding.chatChatRecyclerView.scrollToPosition(0)
-                    Log.d("chatPositionCheck",  "db가 변해서 변한 아이템들, 그룹\n $it")
+                    if(it.isEmpty()){
+                        Log.d("chatDataCheckLiveData: ","NULL, get$it,id: ${chatListData.chatIdx}")
+                        var data=database.chatDao().getOrgChatNoLiveList(userID, chatListData.chatIdx)
+                        Log.d("chatDataCheckLiveData: ","with No LiveData, get$data")
+                        chatRVAdapter.addItem(data)
+                        chatList.clear()
+                        chatList.addAll(data)
+                        binding.chatChatRecyclerView.scrollToPosition(0)
+                    }
+                    else{
+                        Log.d("chatDataCheckLiveData: ","NONE NULL, get$it")
+                        chatRVAdapter.addItem(it)
+                        chatList.clear()
+                        chatList.addAll(it)
+                        binding.chatChatRecyclerView.scrollToPosition(0)
+                    }
+
                 }
 
 
@@ -167,20 +168,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
         }
    }
 
-    //    fun getAllSections(): LiveData<List<Section?>?>? {
-//        val sections: LiveData<List<Section>> = mDb.sectionDAO().getAllSections()
-//        mSectionLive.addSource(sections, object : Observer<List<Section?>?>() {
-//            fun onChanged(@Nullable sectionList: List<Section?>?) {
-//                if (sectionList == null || sectionList.isEmpty()) {
-//                    // Fetch data from API
-//                } else {
-//                    mSectionLive.removeSource(sections)
-//                    mSectionLive.setValue(sectionList)
-//                }
-//            }
-//        })
-//        return mSectionLive
-//    }
     private fun initClickListener() {
         // 메인 FAB 버튼 눌렀을 때
         binding.chatMainFab.setOnClickListener {
@@ -213,15 +200,10 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         // 삭제하는 경우
         binding.chatDeleteFab.setOnClickListener {
-            val selectedChatIdx = chatRVAdapter.getSelectedItemList()
-
-            if(selectedChatIdx.isNotEmpty()) {
-                for (element in selectedChatIdx) {
-                    AppDatabase.getInstance(this@ChatActivity)!!.chatDao().deleteByChatIdx(element)
-                }
-                chatRVAdapter.removeChat(selectedChatIdx)
+                var data=chatRVAdapter.removeSelectedItemList()
+                if(data!=null)
+                    chatListData=data
                 chatRVAdapter.clearSelectedItemList()
-                Log.d("chatPositionCheck", "삭제하고 난 후의 현재 RVAdapter의 chatList내역\n ${chatRVAdapter.chatList}")
 
                 binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
                 ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
@@ -236,7 +218,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 // 일반 모드로
                 chatRVAdapter.clearSelectedItemList()
                 chatViewModel.setMode(mode = 0)
-            }
         }
 
         binding.chatBackIv.setOnClickListener {

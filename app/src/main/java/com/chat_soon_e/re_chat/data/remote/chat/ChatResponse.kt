@@ -56,5 +56,13 @@ data class FolderChat(
     //@SerializedName("chat_date")val chatDate:Date,
     @SerializedName("post_time")val postTime:Date,
     @SerializedName("chatIdx")val chatIdx:Int
-
+)
+data class FolderContent(
+    @SerializedName("folderName") val folderName: String,
+    @SerializedName("nickname") val nickname: String,
+    @SerializedName("profileImgUrl") val profileImgUrl: String?,
+    @SerializedName("message") val message: String,
+    @SerializedName("chat_date") val chatDate: String?,
+    @SerializedName("post_time") val postTime: String,
+    @SerializedName("chatIdx")val chatIdx:Int
 )
