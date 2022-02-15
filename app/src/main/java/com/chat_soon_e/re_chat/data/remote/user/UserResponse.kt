@@ -9,3 +9,7 @@ data class UserResponse(
     @SerializedName("code") val code:Int,
     @SerializedName("message") val message: String
 )
+
+data class User(
+    @SerializedName("kakaoUserIdx") val kakaoUserIdx: Long
+)

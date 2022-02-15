@@ -134,6 +134,24 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
         notifyDataSetChanged()
     }
+    // selectedItemList 삭제
+    @RequiresApi(Build.VERSION_CODES.N)
+    @SuppressLint("NotifyDataSetChanged")
+    fun removeSelectedItemList():ChatList? {
+        var database=AppDatabase.getInstance(mContext)!!
+        val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
+        chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
+        // DB 업데이트
+        for(i in selectedList){
+            database.chatDao().deleteByChatIdx(i.chatIdx)
+            Log.d("chatDataCheckLiveData", "deletedItem: ${i.chatIdx}")
+        }
+        if(chatList.isNotEmpty())
+            return chatList[0]
+        else
+            return null
+        notifyDataSetChanged()
+    }
 
     // will toggle the selection of items
     private fun toggleItemSelected(view: View?, position: Int) {
@@ -194,8 +212,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     }
 
     fun setChecked(position: Int) {
+        Log.d("chatPositionCheck", "선택되고 나기전 아이템의 인덱스 ${chatList[position]}")
         chatList[position].isChecked = !chatList[position].isChecked
         notifyItemChanged(position)
+        Log.d("chatPositionCheck", "선택되고 난 후의 아이템 인덱스 $position")
     }
 
     // 아이템뷰가 선택되었는지를 알려주는 함수

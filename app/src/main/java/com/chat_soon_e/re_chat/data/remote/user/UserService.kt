@@ -12,7 +12,7 @@ class UserService {
     private val tag = "SERVICE/USER"
 
     // 카카오 회원 추가하기
-    fun addKakaoUser(userView: UserView, userIdx: Long) {
+    fun addKakaoUser(userView: UserView, userIdx: User) {
         val userService = retrofit.create(UserRetrofitInterface::class.java)
 
         // 응답 처리
@@ -21,6 +21,7 @@ class UserService {
                 Log.d(tag, "addKakaoUser()/onResponse()")
                 Log.d(tag, "addKakaoUSer()/onResponse()/userIdx: $userIdx")
                 Log.d(tag, "addKakaoUSer()/onResponse()/response.body: ${response.body()}")
+                Log.d(tag, "addKakaoUSer()/onResponse()/response.isSuccessful: ${response.isSuccessful}")
 
                 if(response.isSuccessful && response.body() != null) {
                     val resp = response.body()!!

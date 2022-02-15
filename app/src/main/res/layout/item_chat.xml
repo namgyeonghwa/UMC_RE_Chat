@@ -51,7 +51,7 @@
             android:layout_marginStart="10dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/item_chat_default_new_date_time_tv"
+            app:layout_constraintStart_toEndOf="@id/item_chat_default_new_date_time_tv"
             app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -95,11 +95,11 @@
         android:id="@+id/item_chat_default_message_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/cafessurroundair"
+        android:fontFamily="@font/ibmplexsanskrlight"
         android:text="@string/message"
         android:textColor="@color/black"
         android:maxHeight="300dp"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:gravity="center_vertical"
         android:paddingStart="20dp"
         android:background="@drawable/selector_chat"

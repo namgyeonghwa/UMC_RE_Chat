@@ -113,7 +113,9 @@ class SplashActivity: AppCompatActivity(), UserView {
             } else if (token != null) {
                 Log.i(tag, "카카오계정으로 로그인 성공 ${token.accessToken}")
 //                binding.splashKakaoIv.visibility = View.INVISIBLE
-                binding.splashKakaoBtn.visibility = View.INVISIBLE
+                runOnUiThread {
+                    binding.splashKakaoBtn.visibility = View.INVISIBLE
+                }
                 saveUserInfo("login")
             }
         }
@@ -133,8 +135,9 @@ class SplashActivity: AppCompatActivity(), UserView {
                 } else if (token != null) {
                     Log.i(tag, "카카오톡으로 로그인 성공 ${token.accessToken}")
 //                    binding.splashKakaoIv.visibility=View.INVISIBLE
-                    binding.splashKakaoBtn.visibility=View.INVISIBLE
-
+                    runOnUiThread {
+                        binding.splashKakaoBtn.visibility = View.INVISIBLE
+                    }
                     saveUserInfo("login")
                 }
             }
@@ -186,11 +189,13 @@ class SplashActivity: AppCompatActivity(), UserView {
                         if(users == null){
                             //유저 인포 저장
                             dao.insert(User(user.id, user.kakaoAccount?.profile?.nickname.toString(), user.kakaoAccount?.email.toString(), ACTIVE))
+//                            val userID = user.id
 
-//                            // Server API: 카카오 회원 추가하기
-//                            val userService = UserService()
-//                            userService.addKakaoUser(this, user.id)
-//                            Log.d(tag, "Server API: user.id")
+                            // Server API: 카카오 회원 추가하기
+                            val kakaoUserIdx = com.chat_soon_e.re_chat.data.remote.user.User(user.id)
+                            val userService = UserService()
+                            userService.addKakaoUser(this, kakaoUserIdx)
+                            Log.d(tag, "Server API: ${user.id}")
 
                         }else{
                             if(users.status=="delete")

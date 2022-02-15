@@ -113,7 +113,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:background="@drawable/selector_chat"
-            android:fontFamily="@font/cafessurroundair"
+            android:fontFamily="@font/ibmplexsanskrlight"
             android:gravity="center_vertical"
             android:maxHeight="300dp"
             android:paddingStart="20dp"

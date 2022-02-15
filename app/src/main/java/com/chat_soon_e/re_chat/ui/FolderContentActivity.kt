@@ -40,7 +40,7 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
             Log.d(tag, "data: $folderInfo")
         }
     }
-//해당 폴더를 눌렀을떄 요기로 오게 된다
+    //해당 폴더를 눌렀을떄 요기로 오게 된다
 //
     // RecyclerView 초기화
     private fun initRecyclerView() {
