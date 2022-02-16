@@ -175,10 +175,6 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
                 Toast.makeText(this, "알림 설정", Toast.LENGTH_SHORT).show()
             }
 
-            // 차단 관리
-            R.id.navi_setting_block_item -> {
-                Toast.makeText(this, "차단 관리", Toast.LENGTH_SHORT).show()
-            }
 
             // 패턴 변경하기
             R.id.navi_setting_pattern_item -> {
@@ -321,7 +317,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         val popupView = inflater.inflate(R.layout.popup_window_change_name, null)
         mPopupWindow = PopupWindow(popupView, width, WindowManager.LayoutParams.WRAP_CONTENT)
 
-        mPopupWindow.animationStyle = -1        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = R.style.Animation
         mPopupWindow.isFocusable = true         // 외부 영역 선택 시 팝업 윈도우 종료
         mPopupWindow.isOutsideTouchable = true
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
@@ -369,7 +366,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         val popupView = inflater.inflate(R.layout.popup_window_change_icon, null)
         mPopupWindow = PopupWindow(popupView, width, height)
 
-        mPopupWindow.animationStyle = -1        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = R.style.Animation
         mPopupWindow.isFocusable = true
         mPopupWindow.isOutsideTouchable = true
 
@@ -427,7 +425,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         val popupView = inflater.inflate(R.layout.popup_window_set_folder_name, null)
         mPopupWindow = PopupWindow(popupView, width, WindowManager.LayoutParams.WRAP_CONTENT)
 
-        mPopupWindow.animationStyle = -1        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = R.style.Animation
         mPopupWindow.isFocusable = true         // 외부 영역 선택 시 팝업 윈도우 종료
         mPopupWindow.isOutsideTouchable = true
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
@@ -464,7 +463,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         val popupView = inflater.inflate(R.layout.popup_window_change_icon, null)
         mPopupWindow = PopupWindow(popupView, width, height)
 
-        mPopupWindow.animationStyle = -1        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = R.style.Animation
         mPopupWindow.isFocusable = true
         mPopupWindow.isOutsideTouchable = true
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)

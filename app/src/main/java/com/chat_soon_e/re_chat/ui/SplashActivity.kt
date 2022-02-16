@@ -192,10 +192,10 @@ class SplashActivity: AppCompatActivity(), UserView {
 //                            val userID = user.id
 
                             // Server API: 카카오 회원 추가하기
-                            val kakaoUserIdx = com.chat_soon_e.re_chat.data.remote.user.User(user.id)
-                            val userService = UserService()
-                            userService.addKakaoUser(this, kakaoUserIdx)
-                            Log.d(tag, "Server API: ${user.id}")
+//                            val kakaoUserIdx = com.chat_soon_e.re_chat.data.remote.user.User(user.id)
+//                            val userService = UserService()
+//                            userService.addKakaoUser(this, kakaoUserIdx)
+//                            Log.d(tag, "Server API: ${user.id}")
 
                         }else{
                             if(users.status=="delete")

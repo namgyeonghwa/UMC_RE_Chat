@@ -23,8 +23,9 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:dotsSize="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="20dp"
-        app:dotsColor="#9479BF"
+        app:dotsColor="#9DB2FA"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>

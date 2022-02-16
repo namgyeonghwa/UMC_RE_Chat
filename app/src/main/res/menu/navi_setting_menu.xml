@@ -7,10 +7,6 @@
         android:icon="@drawable/ic_baseline_phonelink_ring_24"
         android:title="@string/setting_alarm"
         app:actionLayout="@layout/activity_main_drawer_switch" />
-    <item
-        android:id="@+id/navi_setting_block_item"
-        android:icon="@drawable/ic_baseline_block_24"
-        android:title="@string/setting_block" />
 
     <item
         android:id="@+id/navi_setting_pattern_item"

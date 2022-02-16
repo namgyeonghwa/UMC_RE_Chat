@@ -280,7 +280,8 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         val popupView = inflater.inflate(R.layout.popup_window_to_folder_menu, null)
         mPopupWindow = PopupWindow(popupView, width, height)
 
-        mPopupWindow.animationStyle = -1        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = R.style.Animation
         mPopupWindow.isFocusable = true         // 외부 영역 선택 시 팝업 윈도우 종료
         mPopupWindow.isOutsideTouchable = true
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)

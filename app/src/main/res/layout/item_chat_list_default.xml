@@ -51,7 +51,7 @@
         android:id="@+id/item_chat_list_content_tv"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/cafessurroundair"
+        android:fontFamily="@font/ibmplexsanskrlight"
         android:text="@string/chat_list_content"
         android:textSize="13sp"
         android:textColor="@color/black"
@@ -99,6 +99,8 @@
         android:text="@string/chat_list_date_time"
         android:textColor="@color/gray"
         android:textSize="10sp"
+        android:fontFamily="@font/ibmplexsanskrlight"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/item_chat_list_name_tv" />
 

@@ -86,7 +86,7 @@
         android:maxLines="1"
         android:text="@string/name"
         android:textColor="@color/black"
-        android:textSize="16sp"
+        android:textSize="15sp"
         app:layout_constraintStart_toEndOf="@+id/item_chat_choose_profile_iv"
         app:layout_constraintTop_toTopOf="@+id/item_chat_choose_profile_iv" />
 
@@ -119,7 +119,7 @@
             android:paddingStart="20dp"
             android:text="@string/message"
             android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
     </RelativeLayout>
 
@@ -143,6 +143,7 @@
         android:includeFontPadding="false"
         android:lineSpacingExtra="0dp"
         android:text="@string/date_time"
+        android:textStyle="bold"
         android:textColor="@color/black"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@+id/item_chat_choose_message_layout"
