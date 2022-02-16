@@ -1,13 +1,11 @@
 package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
+import android.graphics.Insets
 import android.graphics.Point
 import android.os.Build
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +19,9 @@ import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -98,6 +99,16 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
             if(chat.profileImgUrl==null||chat.profileImgUrl=="null") binding.itemChatDefaultProfileIv.setImageResource(R.drawable.chat_defualt_profile)
             else binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImgUrl!!, mContext))
             binding.itemChatDefaultDateTimeTv.text = convertDate(binding, chat.postTime)
+
+            if(isNextDay(chat.postTime, bindingAdapterPosition)) {
+                // 다음 날로 날짜가 바뀐 경우
+                // 혹은 날짜가 1일 이상 차이날 때
+                binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatDefaultNewDateTimeTv.text = setNewDate(chat.postTime)
+            } else {
+                // 날짜가 바뀐 게 아닌 경우
+                binding.itemChatDefaultNewDateTimeLayout.visibility = View.GONE
+            }
         }
     }
 
@@ -121,12 +132,72 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
-            val time = SimpleDateFormat("yyyy년 M월 d일")
+            val time = SimpleDateFormat("a h:mm")
             str = time.format(dateAsDate).toString()
-
-            binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
-            binding.itemChatDefaultNewDateTimeTv.text = str
         }
         return str
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun setNewDate(date: String): String {
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateAsDate = simpleDateFormat.parse(date)!!
+        val newDate = SimpleDateFormat("yyyy년 M월 d일 EE")
+        return newDate.format(dateAsDate).toString()
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun isNextDay(date: String, position: Int): Boolean {
+        val period: Int
+
+        val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val currentDateAsDate = simpleDateFormat1.parse(date)
+
+        val previousDateAsDate = simpleDateFormat1.parse(chatList[position + 1].postTime)
+
+        val previousLocalDate = previousDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        val currentLocalDate = currentDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        val testLocalDate = LocalDate.of(2022, 2, 13)
+
+        Log.d(tag, "isNextDay()/previousDate: $previousLocalDate")
+        Log.d(tag, "isNextDay()/currentDate: $currentLocalDate")
+
+        val differenceDate = previousLocalDate.until(currentLocalDate, ChronoUnit.DAYS)
+        period = differenceDate.toInt()
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val previousLocalDate = chatList[position - 1].postTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//            val currentLocalDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//
+//            Log.d(tag, "isNextDay()/previousDate: $previousLocalDate")
+//            Log.d(tag, "isNextDay()/currentDate: $currentLocalDate")
+//
+//            val differenceDate = previousLocalDate.until(currentLocalDate, ChronoUnit.DAYS) + 1
+//            period = differenceDate.toInt()
+//        } else {
+//            val previousLocalDate = org.joda.time.LocalDate.
+//            val currentLocalDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//        }
+
+        Log.d(tag, "isNextDay()/period: $period")
+        return period >= 1
+    }
+
+    // 디바이스 크기에 사이즈를 맞추기 위한 함수
+    private fun WindowManager.currentWindowMetricsPointCompat(): Point {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            val windowInsets = currentWindowMetrics.windowInsets
+            var insets: Insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            windowInsets.displayCutout?.run {
+                insets = Insets.max(insets, Insets.of(safeInsetLeft, safeInsetTop, safeInsetRight, safeInsetBottom))
+            }
+            val insetsWidth = insets.right + insets.left
+            val insetsHeight = insets.top + insets.bottom
+            Point(currentWindowMetrics.bounds.width() - insetsWidth, currentWindowMetrics.bounds.height() - insetsHeight)
+        } else{
+            Point().apply {
+                defaultDisplay.getSize(this)
+            }
+        }
     }
 }

@@ -204,8 +204,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainContent.mainDeleteIv.visibility = View.VISIBLE
                 binding.mainContent.mainMyFolderIv.visibility = View.GONE
                 binding.mainContent.mainBlockIv.visibility = View.VISIBLE
-                binding.mainContent.mainBlockListTv.text="차단"
-                binding.mainContent.mainMyFolderTv.text="삭제"
+                binding.mainContent.mainBlockListTv.text="삭제"
+                binding.mainContent.mainMyFolderTv.text="차단"
             }
             // 모든 데이터의 viewType 바꿔주기
             mainRVAdapter.setViewType(currentMode = it)
@@ -411,11 +411,29 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 binding.mainContent.mainDeleteIv.setOnClickListener {
                     mainRVAdapter.removeSelectedItemList()
                     Toast.makeText(this@MainActivity, "삭제하기", Toast.LENGTH_SHORT).show()
+
+                    mainRVAdapter.clearSelectedItemList()
+                    chatViewModel.setMode(mode = 0)
+
+                    binding.mainContent.mainFolderIv.visibility = View.VISIBLE
+                    binding.mainContent.mainFolderModeIv.visibility = View.GONE
+                    binding.mainContent.mainCancelIv.visibility = View.GONE
+                    binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+                    binding.mainContent.mainBlockIv.visibility=View.GONE
                 }
                 // 해당 chat 차단
                 binding.mainContent.mainBlockIv.setOnClickListener {
                     mainRVAdapter.blockSelectedItemList()
                     Toast.makeText(this@MainActivity, "차단하기", Toast.LENGTH_SHORT).show()
+
+                    mainRVAdapter.clearSelectedItemList()
+                    chatViewModel.setMode(mode = 0)
+
+                    binding.mainContent.mainFolderIv.visibility = View.VISIBLE
+                    binding.mainContent.mainFolderModeIv.visibility = View.GONE
+                    binding.mainContent.mainCancelIv.visibility = View.GONE
+                    binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+                    binding.mainContent.mainBlockIv.visibility=View.GONE
                 }
             }
         }
@@ -518,6 +536,15 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 // 팝업 윈도우를 꺼주는 역할
                 mPopupWindow.dismiss()
                 binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+
+                mainRVAdapter.clearSelectedItemList()
+                chatViewModel.setMode(mode = 0)
+
+                binding.mainContent.mainFolderIv.visibility = View.VISIBLE
+                binding.mainContent.mainFolderModeIv.visibility = View.GONE
+                binding.mainContent.mainCancelIv.visibility = View.GONE
+                binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+                binding.mainContent.mainBlockIv.visibility=View.GONE
             }
         })
 
@@ -593,35 +620,5 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 ////            val folderService = FolderService()
 ////            folderService.createFolder(this, userID)
 //        }
-//    }
-//
-//
-//    override fun onCreateFolderSuccess() {
-//        Log.d(tag, "onCreateFolderSuccess()")
-////        val folderService = FolderService()
-////        folderService.changeFolderName(this, userID, 1, "새폴더1")
-////        folderService.changeFolderName(this, userID, 2, "새폴더2")
-////        folderService.changeFolderIcon(this, userID, 2, null)
-////        folderService.changeFolderIcon(this, userID, 2, null)
-//    }
-//
-//    override fun onCreateFolderFailure(code: Int, message: String) {
-//        Log.d(tag, "onCreateFolderFailure()/code: $code, message: $message")
-//    }
-//
-//    override fun onChangeFolderNameSuccess() {
-//        Log.d(tag, "onChangeFolderNameSuccess()")
-//    }
-//
-//    override fun onChangeFolderNameFailure(code: Int, message: String) {
-//        Log.d(tag, "onChangeFolderNameFailure()/code: $code, message: $message")
-//    }
-//
-//    override fun onChangeFolderIconSuccess() {
-//        Log.d(tag, "onChangeFolderIconSuccess()")
-//    }
-//
-//    override fun onChangeFolderIconFailure(code: Int, message: String) {
-//        Log.d(tag, "onChangeFolderIconFailure()/code: $code, message: $message")
 //    }
 }
