@@ -15,7 +15,7 @@ interface ChatRetrofitInterface {
     @GET("/app/chats/{kakaoUserIdx}/chatlist")
     fun getChatList(
         @Path("kakaoUserIdx") kakaoUserIdx: Long
-    ): Call<ChatListResponse>
+    ): Call<ChatResponse>
 
     // 갠톡 or 단톡 채팅 가져오기
     @GET("/app/chats/{kakaoUserIdx}/chats")

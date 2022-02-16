@@ -14,7 +14,7 @@ import com.chat_soon_e.re_chat.data.entities.Chat
 import com.chat_soon_e.re_chat.data.entities.OtherUser
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
-import com.chat_soon_e.re_chat.ui.view.AddChatView
+import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.saveID
 import java.io.File
@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.M)
-class MyNotificationListener: NotificationListenerService(), AddChatView {
+class MyNotificationListener: NotificationListenerService() {
     private lateinit var database: AppDatabase
     private var userID = getID()
     private val tag = "MYNOTIFICATION"
@@ -123,37 +123,39 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
                         other = database.otherUserDao().getOtherUserByNameId(name.toString(), userID)!!
                         database.chatDao().insert(Chat(other.otherUserIdx, subText.toString(),text.toString(), dateAsString, -1, ACTIVE))
 
-                        if(subText == null) {
-                            // 단톡이 아닌 경우 groupName == null
-                            // Server API: 채팅 추가하기
+
+//                        if(subText == null) {
+//                            // 단톡이 아닌 경우 groupName == null
+//                            // Server API: 채팅 추가하기
 //                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
 //                            val chatService = ChatService()
 //                            chatService.addChat(this, userID, remoteChat)
-                        } else {
-                            // 단톡인 경우
-                            // Server API: 채팅 추가하기
+//                        } else {
+//                            // 단톡인 경우
+//                            // Server API: 채팅 추가하기
 //                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
 //                            val chatService = ChatService()
 //                            chatService.addChat(this, userID, remoteChat)
-                        }
+//                        }
                     } else {
                         database.otherUserDao().insert(OtherUser(name.toString(), null, ACTIVE, userID))
                         other = database.otherUserDao().getOtherUserByNameId(name.toString(), userID)!!
                         database.chatDao().insert(Chat(other.otherUserIdx, subText.toString(),text.toString(), dateAsString, -1, ACTIVE))
 
-                        if(subText == null) {
-                            // 단톡이 아닌 경우 groupName == null
-                            // Server API: 채팅 추가하기
+
+//                        if(subText == null) {
+//                            // 단톡이 아닌 경우 groupName == null
+//                            // Server API: 채팅 추가하기
 //                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
 //                            val chatService = ChatService()
 //                            chatService.addChat(this, userID, remoteChat)
-                        } else {
-                            // 단톡인 경우
-                            // Server API: 채팅 추가하기
+//                        } else {
+//                            // 단톡인 경우
+//                            // Server API: 채팅 추가하기
 //                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
 //                            val chatService = ChatService()
 //                            chatService.addChat(this, userID, remoteChat)
-                        }
+//                        }
                     }
                 }
             }
@@ -198,17 +200,17 @@ class MyNotificationListener: NotificationListenerService(), AddChatView {
 //        return 0
 //    }
 
-    // 채팅 넣어주는 걸 성공한 경우
-    override fun onAddChatSuccess() {
-        Log.d(tag, "onAddChatSuccess()")
-    }
-
-    // 실패한 경우
-   override fun onAddChatFailure(code: Int, message: String) {
-        when (code) {
-            2100 -> Log.d(tag, message)
-            2202 -> Log.d(tag, message)
-            else -> Log.d(tag, message)
-        }
-    }
+//    // 채팅 넣어주는 걸 성공한 경우
+//    override fun onChatSuccess() {
+//        Log.d(tag, "onAddChatSuccess()")
+//    }
+//
+//    // 실패한 경우
+//   override fun onChatFailure(code: Int, message: String) {
+//        when (code) {
+//            2100 -> Log.d(tag, message)
+//            2202 -> Log.d(tag, message)
+//            else -> Log.d(tag, message)
+//        }
+//    }
 }

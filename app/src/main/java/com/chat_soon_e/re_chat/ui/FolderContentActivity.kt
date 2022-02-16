@@ -68,7 +68,6 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
                 popupMenu.show()
             }
         })
-
         binding.folderContentRecyclerView.adapter = folderContentRVAdapter
     }
 

@@ -29,7 +29,7 @@
         app:dotNormalSize="25dp"
         app:dotSelectedSize="30dp"
         app:pathWidth="7dp"
-        app:correctStatelor="@color/rechat_main_color_blue"
+        app:correctStateColor="@color/rechat_main_color_blue"
         android:layout_marginTop="20dp"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintTop_toBottomOf="@+id/input_pattern_tv"

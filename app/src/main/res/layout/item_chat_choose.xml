@@ -115,7 +115,6 @@
             android:background="@drawable/selector_chat"
             android:fontFamily="@font/ibmplexsanskrlight"
             android:gravity="center_vertical"
-            android:maxHeight="300dp"
             android:paddingStart="20dp"
             android:text="@string/message"
             android:textColor="@color/black"
