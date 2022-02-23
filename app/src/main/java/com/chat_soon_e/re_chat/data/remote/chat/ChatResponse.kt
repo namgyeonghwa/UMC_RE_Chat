@@ -1,5 +1,7 @@
 package com.chat_soon_e.re_chat.data.remote.chat
 
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.JsonArray
 import com.google.gson.annotations.SerializedName
 import java.util.*
@@ -12,6 +14,26 @@ data class ChatResponse(
     @SerializedName("message") val message: String,
     @SerializedName("result") val result: JsonArray?
 )
+
+// 전체 채팅목록 가져오기 (메인화면)
+data class ChatList(
+    @SerializedName("chatIdx") var chatIdx: Int,
+    @SerializedName("chat_name") var chatName: String,              // nickname
+    @SerializedName("profile_image") var profileImg: String?,
+    @SerializedName("latest_time") var latestTime: String,
+    @SerializedName("latest_message") var latestMessage: String,
+    @SerializedName("groupName") var groupName: String?,
+    @SerializedName("isNew") var isNew: Int = 1,
+) {
+    @PrimaryKey(autoGenerate = true) var id: Int? = 0
+    @Ignore var viewType: Int = 0
+    @Ignore var isChecked: Boolean = false
+}
+
+object ChatListViewType {
+    const val DEFAULT = 0
+    const val CHOOSE = 1
+}
 
 //채팅 추가하기
 data class Chat(
