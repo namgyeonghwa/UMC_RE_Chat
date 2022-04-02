@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_chat_list_default_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:background="@color/white"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <ImageView
+        android:id="@+id/item_chat_list_profile_iv"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="20dp"
+        android:background="@color/white"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_profile_default"
+        app:layout_constraintEnd_toStartOf="@+id/item_chat_list_name_tv"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/bg_circle"
+        android:translationZ="-1dp"
+        app:layout_constraintBottom_toBottomOf="@id/item_chat_list_profile_iv"
+        app:layout_constraintEnd_toEndOf="@id/item_chat_list_profile_iv"
+        app:layout_constraintStart_toStartOf="@id/item_chat_list_profile_iv"
+        app:layout_constraintTop_toTopOf="@id/item_chat_list_profile_iv" />
+
+    <TextView
+        android:id="@+id/item_chat_list_name_tv"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:ellipsize="end"
+        android:includeFontPadding="false"
+        android:lineSpacingExtra="0dp"
+        android:maxLines="1"
+        android:text="@string/chat_name"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/item_chat_list_profile_iv"
+        app:layout_constraintTop_toTopOf="@id/item_chat_list_profile_iv" />
+
+    <TextView
+        android:id="@+id/item_chat_list_content_tv"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/ibmplexsanskrlight"
+        android:maxLines="1"
+        android:text="@string/chat_message"
+        android:textColor="@color/black"
+        android:textSize="13sp"
+        app:layout_constraintStart_toStartOf="@id/item_chat_list_name_tv"
+        app:layout_constraintTop_toBottomOf="@+id/item_chat_list_name_tv" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/item_chat_list_new_cv"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginTop="5dp"
+        android:translationZ="2dp"
+        android:visibility="visible"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="50dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/item_chat_list_content_tv"
+        app:layout_constraintEnd_toEndOf="@id/item_chat_list_date_time_tv"
+        app:layout_constraintTop_toTopOf="@id/item_chat_list_content_tv">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#1b5fcb"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:lineSpacingExtra="0dp"
+            android:text="@string/chat_new"
+            android:textColor="@color/white"
+            android:textSize="5sp"
+            tools:ignore="SmallSp" />
+
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/item_chat_list_date_time_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:fontFamily="@font/ibmplexsanskrlight"
+        android:includeFontPadding="false"
+        android:lineSpacingExtra="0dp"
+        android:text="@string/chat_date_time"
+        android:textColor="@color/gray"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/item_chat_list_name_tv"
+        tools:ignore="SmallSp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
