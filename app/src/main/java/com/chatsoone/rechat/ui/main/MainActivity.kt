@@ -217,7 +217,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 if (permissionGrantred(this)) {
                     Toast.makeText(this, "알림 권한을 허용합니다.", Toast.LENGTH_SHORT).show()
                     Log.d(ACT, "MAIN/inPermission")
-                    startForegroundService(Intent(this, NotificationListener::class.java))
+                    startService(Intent(this, NotificationListener::class.java))
                 }
             } else {
                 // 알림 권한을 허용하지 않았을 때

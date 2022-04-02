@@ -29,7 +29,7 @@ class PermissionActivity : AppCompatActivity() {
 
             // 권한을 얻었다면 서비스 시작
             if (permissionGrantred(this)) Log.d(ACT, "PERMISSION/inPermission")
-            startForegroundService(Intent(this, NotificationListener::class.java))
+            startService(Intent(this, NotificationListener::class.java))
             finish()
         }
     }
