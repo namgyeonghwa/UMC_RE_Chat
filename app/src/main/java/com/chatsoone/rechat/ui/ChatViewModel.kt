@@ -3,7 +3,7 @@ package com.chatsoone.rechat.ui
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class ChatViewModel: ViewModel() {
+class ChatViewModel : ViewModel() {
     private var _mode = MutableLiveData<Int>()
     val mode get() = _mode  // 0: 일반, 1: 선택
 

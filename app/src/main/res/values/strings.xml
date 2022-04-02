@@ -22,6 +22,7 @@
     <!-- bottom navigation view -->
     <string name="main_bnv_home">전체채팅</string>
     <string name="main_bnv_block_list">차단목록</string>
+    <string name="main_bnv_center">　</string>
     <string name="main_bnv_folder">보관함</string>
     <string name="main_bnv_hidden_folder">숨긴보관함</string>
 

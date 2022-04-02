@@ -8,9 +8,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Insets
 import android.graphics.Point
 import android.os.Build
+import android.util.SparseBooleanArray
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
+import com.chatsoone.rechat.ui.main.MainActivity
+import com.chatsoone.rechat.ui.main.home.HomeRVAdapter
 import java.io.File
 
 class ApplicationClass : Application() {
@@ -22,6 +25,7 @@ class ApplicationClass : Application() {
         const val TAG: String = "RE:CHAT-APP"
         const val ACT: String = "ACT/"
         const val FRAG: String = "FRAG/"
+        const val RV: String = "RV/"
 
         // database
         const val APP_DATABASE = "$TAG-DB"
@@ -33,9 +37,6 @@ class ApplicationClass : Application() {
 
         // server api
 //        const val BASE_URL: String = DEV_URL
-
-        // 공통 변수
-        var count: Int = 0
 
         // 캐시 저장소로부터 이미지 불러오기
         // 추후 진짜 캐시를 사용해 볼 것

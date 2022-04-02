@@ -20,6 +20,13 @@
         tools:ignore="AlwaysShowAction" />
 
     <item
+        android:id="@+id/main_bnv_center"
+        android:title="@string/main_bnv_center"
+        app:showAsAction="always"
+        android:enabled="true"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
         android:id="@+id/main_bnv_folder"
         android:icon="@drawable/selector_main_bnv_folder"
         android:title="@string/main_bnv_folder"

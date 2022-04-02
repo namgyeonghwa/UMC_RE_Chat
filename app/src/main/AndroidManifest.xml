@@ -24,11 +24,25 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.main.MainActivity" android:exported="false" />
+        <!-- chat -->
+        <activity android:name=".ui.chat.ChatActivity" android:exported="false" />
+        <activity android:name=".ui.chat.FolderContentActivity" android:exported="false" />
+
+        <!-- explain -->
         <activity android:name=".ui.explain.ExplainActivity" android:exported="false" />
-        <activity android:name=".ui.permission.PermissionActivity" android:exported="false" />
+
+        <!-- main -->
+        <activity android:name=".ui.main.MainActivity" android:exported="false" />
+
+        <!-- pattern -->
         <activity android:name=".ui.pattern.CreatePatternActivity" android:exported="false" />
         <activity android:name=".ui.pattern.InputPatternActivity" android:exported="false" />
+
+        <!-- permission -->
+        <activity android:name=".ui.permission.PermissionActivity" android:exported="false" />
+
+        <!-- setting -->
+        <activity android:name=".ui.setting.PrivacyInfoActivity" android:exported="false" />
 
         <!-- NotificationListener 권한 얻기 -->
         <service android:name=".NotificationListener"

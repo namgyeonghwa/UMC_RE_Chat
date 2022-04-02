@@ -10,7 +10,6 @@
         android:id="@+id/main_frame_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="?attr/actionBarSize"
         app:layout_constraintBottom_toTopOf="@id/main_bnv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -27,12 +26,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- bottom navigation bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/main_bnv"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/design_bnv_height"
+        android:background="@drawable/bg_bnv"
+        app:itemBackground="@color/white"
+        app:itemIconSize="25dp"
+        app:itemIconTint="@drawable/selector_main_bnv_icon"
+        app:itemTextColor="@drawable/selector_main_bnv_icon"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/menu_main_bnv" />
+
     <!-- 하단 중앙 버튼 (배경) -->
     <ImageView
         android:id="@+id/main_bnv_bg_center_iv"
         android:layout_width="130dp"
         android:layout_height="130dp"
-        android:layout_marginBottom="-10dp"
+        android:layout_marginBottom="-5dp"
+        android:background="@android:color/transparent"
         android:outlineProvider="none"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_bg_center_btn"
@@ -46,6 +62,7 @@
         android:id="@+id/main_bnv_center_default_iv"
         android:layout_width="40dp"
         android:layout_height="35dp"
+        android:background="@android:color/transparent"
         android:outlineProvider="none"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_cloud"
@@ -57,20 +74,36 @@
         app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
         app:layout_constraintVertical_bias="0.47" />
 
-    <!-- bottom navigation bar -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/main_bnv"
+    <!-- 하단 중앙 버튼 (선택 모드) -->
+    <ImageView
+        android:id="@+id/main_bnv_center_choose_iv"
+        android:layout_width="40dp"
+        android:layout_height="35dp"
+        android:background="@android:color/transparent"
+        android:outlineProvider="none"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_cloud_move"
+        android:translationZ="10dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintEnd_toEndOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintStart_toStartOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintVertical_bias="0.47" />
+
+    <!-- 전체 화면 흐리게 -->
+    <View
+        android:id="@+id/main_bg_v"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_bnv"
-        app:itemBackground="@color/white"
-        app:itemIconSize="25dp"
-        app:itemIconTint="@drawable/selector_main_bnv_icon"
-        app:itemTextColor="@drawable/selector_main_bnv_icon"
-        app:labelVisibilityMode="labeled"
+        android:layout_height="match_parent"
+        android:background="@color/bg_gray"
+        android:translationZ="1dp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/menu_main_bnv" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

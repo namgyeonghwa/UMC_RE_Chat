@@ -70,7 +70,7 @@
         android:layout_height="35dp"
         android:layout_marginEnd="10dp"
         android:src="@drawable/ic_cancel_gray"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/home_title_tv"
         app:layout_constraintEnd_toStartOf="@id/home_delete_iv"
         app:layout_constraintTop_toTopOf="@id/home_title_tv" />
@@ -82,7 +82,7 @@
         android:layout_height="30dp"
         android:layout_marginEnd="10dp"
         android:src="@drawable/selector_home_delete"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/home_title_tv"
         app:layout_constraintEnd_toStartOf="@id/home_block_iv"
         app:layout_constraintTop_toTopOf="@id/home_title_tv" />
@@ -94,7 +94,7 @@
         android:layout_height="38dp"
         android:layout_marginEnd="20dp"
         android:src="@drawable/selector_home_block"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/home_title_tv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/home_title_tv" />
