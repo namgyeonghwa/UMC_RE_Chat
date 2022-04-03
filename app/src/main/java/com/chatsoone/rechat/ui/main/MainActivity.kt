@@ -3,20 +3,22 @@ package com.chatsoone.rechat.ui.main
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.util.SparseBooleanArray
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
+import android.view.*
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -33,10 +35,8 @@ import com.chatsoone.rechat.data.entity.Icon
 import com.chatsoone.rechat.data.local.AppDatabase
 import com.chatsoone.rechat.databinding.ActivityMainBinding
 import com.chatsoone.rechat.databinding.ItemFolderListBinding
-import com.chatsoone.rechat.ui.ChatViewModel
-import com.chatsoone.rechat.ui.FolderListRVAdapter
-import com.chatsoone.rechat.ui.ItemViewModel
-import com.chatsoone.rechat.ui.LockViewModel
+import com.chatsoone.rechat.databinding.ItemIconBinding
+import com.chatsoone.rechat.ui.*
 import com.chatsoone.rechat.ui.explain.ExplainActivity
 import com.chatsoone.rechat.ui.main.blocklist.BlockListFragment
 import com.chatsoone.rechat.ui.main.folder.MyFolderFragment
@@ -51,6 +51,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
+import java.io.ByteArrayOutputStream
 
 class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     AppCompatActivity() {
@@ -58,6 +59,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     private lateinit var database: AppDatabase
     private lateinit var selectedItemList: ArrayList<ChatList>  // chat index
     private lateinit var folderListRVAdapter: FolderListRVAdapter
+    private lateinit var iconRVAdapter: IconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
 
     private var userID = getID()
@@ -121,7 +123,8 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         // observe mode
         chatViewModel.mode.observe(this) {
             if (it == 0) setDefaultMode()
-            else setChooseMode()
+            else if(it == 1) setChooseMode()
+            else setFolderMode()
             Log.d(ACT, "MAIN/mode: $it")
         }
     }
@@ -129,11 +132,19 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     private fun setDefaultMode() {
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.GONE
+        binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
     }
 
     private fun setChooseMode() {
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.VISIBLE
+        binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
+    }
+
+    private fun setFolderMode() {
+        binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.GONE
+        binding.mainLayout.mainBnvCenterChooseIv.visibility = View.GONE
+        binding.mainLayout.mainBnvCenterFolderIv.visibility = View.VISIBLE
     }
 
     private fun initSelectedItemViewModel() {
@@ -299,6 +310,11 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 openPopupWindow()
             }
         }
+
+        // 폴더 모드일 때
+        binding.mainLayout.mainBnvCenterFolderIv.setOnClickListener {
+            setFolderName()
+        }
     }
 
     // 설정 메뉴 창의 네비게이션 드로어의 아이템들에 대한 이벤트를 처리
@@ -429,6 +445,89 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                         .insertOrgChat(i.chatIdx, folderIdx, userID)
                     else database.folderContentDao().insertOtOChat(folderIdx, i.chatIdx)
                 }
+
+                // 팝업 윈도우 종료
+                mPopupWindow.dismiss()
+            }
+        })
+    }
+
+    // 새폴더 이름 설정
+    @SuppressLint("InflateParams")
+    private fun setFolderName() {
+        val size = windowManager?.currentWindowMetricsPointCompat()
+        val width = ((size?.x ?: 0) * 0.8f).toInt()
+        val height = ((size?.y ?: 0) * 0.4f).toInt()
+
+        val inflater = getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val popupView = inflater.inflate(R.layout.popup_window_set_folder_name, null)
+        mPopupWindow = PopupWindow(popupView, width, WindowManager.LayoutParams.WRAP_CONTENT)
+
+        mPopupWindow.animationStyle = 0
+        mPopupWindow.animationStyle = R.style.Animation
+        mPopupWindow.isFocusable = true
+        mPopupWindow.isOutsideTouchable = true
+        mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
+        binding.mainLayout.mainBgV.visibility = View.VISIBLE
+        mPopupWindow.setOnDismissListener(PopupWindowDismissListener())
+
+        // 입력 완료했을 때 누르는 버튼
+        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_set_name_button).setOnClickListener {
+            // 작성한 폴더 이름을 반영한 새폴더를 만들어준다.
+            val name = mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_set_name_et).text.toString()
+
+            // 팝업 윈도우 종료
+            mPopupWindow.dismiss()
+
+            // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
+            setFolderIcon(name)
+        }
+    }
+
+    // 새폴더 아이콘 설정
+    @SuppressLint("InflateParams")
+    private fun setFolderIcon(name: String) {
+        // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
+        // 아이콘 16개 (기본)
+        val size = windowManager?.currentWindowMetricsPointCompat()
+        val width = ((size?.x ?: 0) * 0.8f).toInt()
+        val height = ((size?.y ?: 0) * 0.6f).toInt()
+
+        // 아이콘 바꾸기 팝업 윈도우
+        val inflater = getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val popupView = inflater.inflate(R.layout.popup_window_change_icon, null)
+        mPopupWindow = PopupWindow(popupView, width, height)
+
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = R.style.Animation
+        mPopupWindow.isFocusable = true
+        mPopupWindow.isOutsideTouchable = true
+        mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
+        binding.mainLayout.mainBgV.visibility = View.VISIBLE
+        mPopupWindow.setOnDismissListener(PopupWindowDismissListener())
+
+        // RecyclerView 초기화
+        iconRVAdapter = IconRVAdapter(iconList)
+        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter = iconRVAdapter
+
+        iconRVAdapter.setMyItemClickListener(object: IconRVAdapter.MyItemClickListener {
+            // 아이콘을 하나 선택했을 경우
+            override fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int) {
+                val selectedIcon = iconList[iconPosition]
+//                val lastIdx = folderList.size
+
+                val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
+                val baos = ByteArrayOutputStream()
+                iconBitmap.compress(Bitmap.CompressFormat.PNG, 70, baos)
+
+                val iconBitmapAsByte = baos.toByteArray()
+                val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
+
+                // Bitmap bigPictureBitmap  = BitmapFactory.decodeResource(context.getResources(), R.drawable.i_hero);
+                // 선택한 아이콘과 전달받은 폴더 이름으로 폴더 하나 생성한 후 RoomDB에 적용
+                val newFolder = Folder(userID, name, selectedIcon.iconImage)
+                database = AppDatabase.getInstance(this@MainActivity)!!
+                database.folderDao().insert(newFolder)
 
                 // 팝업 윈도우 종료
                 mPopupWindow.dismiss()

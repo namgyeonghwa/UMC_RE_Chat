@@ -91,6 +91,23 @@
         app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
         app:layout_constraintVertical_bias="0.47" />
 
+    <!-- 하단 중앙 버튼 (폴더 모드) -->
+    <ImageView
+        android:id="@+id/main_bnv_center_folder_iv"
+        android:layout_width="40dp"
+        android:layout_height="35dp"
+        android:background="@android:color/transparent"
+        android:outlineProvider="none"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_cloud_add"
+        android:translationZ="10dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintEnd_toEndOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintStart_toStartOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
+        app:layout_constraintVertical_bias="0.47" />
+
     <!-- 전체 화면 흐리게 -->
     <View
         android:id="@+id/main_bg_v"

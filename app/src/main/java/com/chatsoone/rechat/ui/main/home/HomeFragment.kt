@@ -69,6 +69,8 @@ class HomeFragment : Fragment(), LifecycleObserver {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        chatViewModel.setMode(mode = 0)
+
         // observe mode
         chatViewModel.mode.observe(viewLifecycleOwner, Observer {
             if (it == 0) setDefaultMode()

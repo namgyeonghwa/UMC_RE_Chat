@@ -15,6 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass.Companion.currentWindowMetricsPointCompat
 import com.chatsoone.rechat.R
@@ -24,6 +25,7 @@ import com.chatsoone.rechat.data.local.AppDatabase
 import com.chatsoone.rechat.databinding.FragmentMyFolderBinding
 import com.chatsoone.rechat.databinding.ItemIconBinding
 import com.chatsoone.rechat.databinding.ItemMyFolderBinding
+import com.chatsoone.rechat.ui.ChatViewModel
 import com.chatsoone.rechat.ui.IconRVAdapter
 import com.chatsoone.rechat.ui.chat.FolderContentActivity
 import com.chatsoone.rechat.util.getID
@@ -40,6 +42,7 @@ class MyFolderFragment : Fragment() {
     private val userID = getID()
     private var folderList = ArrayList<Folder>()
     private var iconList = ArrayList<Icon>()
+    private val chatViewModel by activityViewModels<ChatViewModel>()
 
     // popupwindow와 recyclerview 연결을 위해 선언
     private lateinit var itemMyFolderBinding: ItemMyFolderBinding
@@ -55,6 +58,11 @@ class MyFolderFragment : Fragment() {
 
         initRecyclerView()
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        chatViewModel.setMode(mode = 2)
     }
 
     private fun initRecyclerView() {
