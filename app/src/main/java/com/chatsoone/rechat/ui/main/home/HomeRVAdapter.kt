@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass
 import com.chatsoone.rechat.ApplicationClass.Companion.RV
@@ -32,6 +33,91 @@ class HomeRVAdapter(
     private var database = AppDatabase.getInstance(context)!!
     private var chatList = ArrayList<ChatList>()
     private var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
+
+    // 기본 모드 뷰홀더
+    inner class DefaultViewHolder(private val binding: ItemChatListDefaultBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.itemChatListDefaultLayout.setOnClickListener {
+                mItemClickListener.onDefaultChatClick(
+                    itemView,
+                    position = bindingAdapterPosition,
+                    chatList[bindingAdapterPosition]
+                )
+            }
+
+            // 프로필이 선택된 경우
+            binding.itemChatListProfileIv.setOnClickListener {
+                updateSelectedItemList(position = bindingAdapterPosition)
+                mItemClickListener.onProfileClick(
+                    binding,
+                    position = bindingAdapterPosition
+                )
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun bind(chat: ChatList) {
+            if (!isItemSelected(bindingAdapterPosition)) {
+                // 선택된 아이템이 아닌 경우
+                Log.d(RV, "HOME/default/not selected: $bindingAdapterPosition")
+                if (chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null)
+                    binding.itemChatListProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, context))
+                else if (chat.groupName != null || chat.groupName != "null")
+                    binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_default)
+            } else {
+                // 선택된 아이템인 경우
+                Log.d(RV, "HOME/default/selected: $bindingAdapterPosition")
+                binding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
+            }
+
+            binding.itemChatListNameTv.text = chat.nickName
+            binding.itemChatListContentTv.text = chat.message
+            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
+
+            // 새로 온 채팅인 경우 NEW 표시
+            if (chat.isNew == 1) binding.itemChatListNewCv.visibility = View.VISIBLE
+            else binding.itemChatListNewCv.visibility = View.INVISIBLE
+        }
+    }
+
+    // 선택 모드 뷰홀더
+    inner class ChooseViewHolder(
+        private val binding: ItemChatListChooseBinding,
+        private val mItemClickListener: MyItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            // 선택 모드에서 클릭했을 때
+            binding.itemChatListChooseLayout.setOnClickListener {
+                updateSelectedItemList(position = bindingAdapterPosition)
+                mItemClickListener.onChooseChatClick(
+                    binding,
+                    position = bindingAdapterPosition
+                )
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun bind(chat: ChatList) {
+            if (!isItemSelected(bindingAdapterPosition)) {
+                // 선택되지 않은 아이템인 경우
+                Log.d(RV, "HOME/choose/not selected: $bindingAdapterPosition")
+                if (chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null) binding.itemChatListProfileIv.setImageBitmap(
+                    loadBitmap(chat.profileImg!!, context)
+                ) else if (chat.groupName != null || chat.groupName != "null") binding.itemChatListProfileIv.setImageResource(
+                    R.drawable.ic_profile_default
+                )
+            } else {
+                // 선택된 아이템인 경우
+                Log.d(RV, "HOME/choose/selected: $bindingAdapterPosition")
+                binding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
+            }
+
+            binding.itemChatListNameTv.text = chat.nickName
+            binding.itemChatListContentTv.text = chat.message
+            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
+        }
+    }
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -129,22 +215,69 @@ class HomeRVAdapter(
     }
 
     // will toggle the selection of items
-    private fun toggleItemSelected(view: View?, position: Int) {
+    private fun updateSelectedItemList(position: Int) {
+        // 선택된 아이템들로 리스트 갱신
         if (selectedItemList.get(position, false)) {
             selectedItemList.delete(position)
         } else {
             selectedItemList.put(position, true)
         }
 
+        // 채팅 리스트 업데이트
+        chatList[position].isChecked = !chatList[position].isChecked
+
         // 선택된 itmelist들의 로그
-        Log.d(RV, "HOME/selectedItemList: $selectedItemList")
         notifyItemChanged(position)
     }
 
-    fun setChecked(position: Int) {
-        chatList[position].isChecked = !chatList[position].isChecked
-        notifyItemChanged(position)
+    // 뷰타입 설정
+    @SuppressLint("NotifyDataSetChanged")
+    fun setAllViewType(currentMode: Int) {
+        val newChatList = ArrayList<ChatList>()
+
+        for (i in 0 until chatList.size) {
+            if (currentMode == 0) {
+                // 일반 모드 (= 이동 모드)
+                chatList[i].viewType = ChatListViewType.DEFAULT
+            } else {
+                // 선택 모드
+                chatList[i].viewType = ChatListViewType.CHOOSE
+            }
+            newChatList.add(chatList[i])
+        }
+        this.chatList = newChatList
+        notifyDataSetChanged()
     }
+
+//    fun setChecked(position: Int) {
+//        chatList[position].isChecked = !chatList[position].isChecked
+//        Log.d(RV, "HOME/position: $position")
+//        notifyItemChanged(position)
+//    }
+//
+//    fun setDefaultChecked(itemBinding: ItemChatListDefaultBinding, position: Int) {
+//        Log.d(RV, "HOME/setDefaultChecked")
+//
+//        chatList[position].isChecked = !chatList[position].isChecked
+//        if (chatList[position].isChecked) {
+//            Log.d(RV, "HOME/setDefaultChecked/isChecked: ${chatList[position].isChecked}")
+//            itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
+//        }
+//
+//        notifyItemChanged(position)
+//    }
+//
+//    fun setChooseChecked(itemBinding: ItemChatListChooseBinding, position: Int) {
+//        Log.d(RV, "HOME/setChooseChecked")
+//
+//        chatList[position].isChecked = !chatList[position].isChecked
+//        if (chatList[position].isChecked) {
+//            Log.d(RV, "HOME/setChooseChecked/isChecked: ${chatList[position].isChecked}")
+//            itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
+//        }
+//
+//        notifyItemChanged(position)
+//    }
 
     // 아이템 뷰가 선택되었는지를 알려주는 함수
     private fun isItemSelected(position: Int): Boolean {
@@ -157,20 +290,11 @@ class HomeRVAdapter(
     // 직접 설정한 뷰타입으로 설정되게 만든다.
     override fun getItemViewType(position: Int): Int = chatList[position].viewType!!
 
-    // 뷰타입 설정
-    @SuppressLint("NotifyDataSetChanged")
-    fun setViewType(currentMode: Int) {
-        val newChatList = ArrayList<ChatList>()
-        for (i in 0 until chatList.size) {
-            if (currentMode == 0) { // 일반 모드 (= 이동 모드)
-                chatList[i].viewType = ChatListViewType.DEFAULT
-            } else { // 선택 모드
-                chatList[i].viewType = ChatListViewType.CHOOSE
-            }
-            newChatList.add(chatList[i])
-        }
-        this.chatList = newChatList
-        notifyDataSetChanged()
+    fun setViewType(position: Int, mode: Int) {
+        if (mode == 0) chatList[position].viewType = ChatListViewType.DEFAULT
+        else chatList[position].viewType = ChatListViewType.CHOOSE
+
+        notifyItemChanged(position)
     }
 
     // Add Data
@@ -186,86 +310,6 @@ class HomeRVAdapter(
         // chatlist에서 checked 된 list들의 chatIdx를 저장하고 가져온다
         val selectedList = chatList.filter { chatlist -> chatlist.isChecked }
         return selectedList as ArrayList<ChatList>
-    }
-
-    // 기본 모드 뷰홀더
-    inner class DefaultViewHolder(private val binding: ItemChatListDefaultBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        init {
-            binding.itemChatListDefaultLayout.setOnClickListener {
-                toggleItemSelected(null, position = bindingAdapterPosition)
-                mItemClickListener.onDefaultChatClick(
-                    itemView,
-                    position = bindingAdapterPosition,
-                    chatList[bindingAdapterPosition]
-                )
-            }
-
-            binding.itemChatListProfileIv.setOnClickListener {
-                binding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-                toggleItemSelected(null, position = bindingAdapterPosition)
-                mItemClickListener.onProfileClick(
-                    binding,
-                    position = bindingAdapterPosition
-                )
-            }
-        }
-
-        @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(chat: ChatList) {
-            if (chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null) binding.itemChatListProfileIv.setImageBitmap(
-                ApplicationClass.loadBitmap(chat.profileImg!!, context)
-            ) else if (chat.groupName != null || chat.groupName != "null") binding.itemChatListProfileIv.setImageResource(
-                R.drawable.ic_profile_default
-            )
-
-            Log.d(RV, "HOME/selectedItemList: $selectedItemList")
-
-            binding.itemChatListNameTv.text = chat.nickName
-            binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
-//            binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
-
-            if (chat.isNew == 1) { // 새로 온 경우 NEW 표시
-                binding.itemChatListNewCv.visibility = View.VISIBLE
-            } else {
-                binding.itemChatListNewCv.visibility = View.INVISIBLE
-            }
-        }
-    }
-
-    // 선택 모드 뷰홀더
-    inner class ChooseViewHolder(
-        private val binding: ItemChatListChooseBinding,
-        private val mItemClickListener: MyItemClickListener
-    ) : RecyclerView.ViewHolder(binding.root) {
-        init {
-            binding.itemChatListChooseLayout.setOnClickListener {
-                binding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-                toggleItemSelected(itemView, position = bindingAdapterPosition)
-                mItemClickListener.onChooseChatClick(
-                    binding,
-                    position = bindingAdapterPosition)
-            }
-        }
-
-        @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(chat: ChatList) {
-            if(!isItemSelected(bindingAdapterPosition)) {
-                if (chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null) binding.itemChatListProfileIv.setImageBitmap(
-                    loadBitmap(chat.profileImg!!, context)
-                ) else if (chat.groupName != null || chat.groupName != "null") binding.itemChatListProfileIv.setImageResource(
-                    R.drawable.ic_profile_default
-                )
-            }
-
-            Log.d(RV, "HOME/selectedItemList: $selectedItemList")
-
-            binding.itemChatListNameTv.text = chat.nickName
-            binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
-//            binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
-        }
     }
 
     @SuppressLint("SimpleDateFormat")

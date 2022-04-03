@@ -73,12 +73,13 @@ class HomeFragment : Fragment(), LifecycleObserver {
 
         // observe mode
         chatViewModel.mode.observe(viewLifecycleOwner, Observer {
+            // 모든 데이터의 뷰 타입 변경
+            homeRVAdapter.setAllViewType(it)
+
             if (it == 0) setDefaultMode()
             else setChooseMode()
 
             Log.d(FRAG, "HOME/mode: $it")
-            // 모든 데이터의 뷰 타입 변경
-            homeRVAdapter.setViewType(it)
         })
 
         // observe chat
@@ -109,7 +110,6 @@ class HomeFragment : Fragment(), LifecycleObserver {
             object : HomeRVAdapter.MyItemClickListener {
                 // 기본 모드 (클릭 시 ChatActivity로 이동)
                 override fun onDefaultChatClick(view: View, position: Int, chat: ChatList) {
-                    homeRVAdapter.clearSelectedItemList()
                     checkNewChat(position)
 
                     val spf =
@@ -124,18 +124,26 @@ class HomeFragment : Fragment(), LifecycleObserver {
                     startActivity(intent)
                 }
 
-                // 선택 모드 (클릭 시 프로필 변경 & 선택한 뷰 리스트에 넣어주기)
-                override fun onChooseChatClick(itemBinding: ItemChatListChooseBinding, position: Int) {
+                // 선택 모드로 전환되게끔 (default에서 프로필 클릭 시 선택 모드로 전환)
+                override fun onProfileClick(
+                    itemBinding: ItemChatListDefaultBinding,
+                    position: Int
+                ) {
+                    chatViewModel.setMode(1)
 //                    itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-                    homeRVAdapter.setChecked(position)
+//                    homeRVAdapter.setChecked(position)
+//                    homeRVAdapter.setDefaultChecked(itemBinding, position)
                     selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
                 }
 
-                // 선택 모드로 전환되게끔 (default에서 프로필 클릭 시 선택 모드로 전환)
-                override fun onProfileClick(itemBinding: ItemChatListDefaultBinding, position: Int) {
+                // 선택 모드 (클릭 시 프로필 변경 & 선택한 뷰 리스트에 넣어주기)
+                override fun onChooseChatClick(
+                    itemBinding: ItemChatListChooseBinding,
+                    position: Int
+                ) {
 //                    itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-                    homeRVAdapter.setChecked(position)
-                    chatViewModel.setMode(1)
+//                    homeRVAdapter.setChecked(position)
+//                    homeRVAdapter.setChooseChecked(itemBinding, position)
                     selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
                 }
             })
@@ -164,7 +172,7 @@ class HomeFragment : Fragment(), LifecycleObserver {
 
     // 선택 모드 세팅
     private fun setChooseMode() {
-//        homeRVAdapter.clearSelectedItemList()
+        selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
 
         binding.homeTitleTv.text = null // 디자인에 따라 변경
         binding.homeCancelIv.visibility = View.VISIBLE
@@ -174,96 +182,12 @@ class HomeFragment : Fragment(), LifecycleObserver {
         binding.homeLayout.setBackgroundColor(Color.parseColor("#FFFFFF"))
     }
 
-    // 폴더로 보내기 팝업 윈도우
-    @SuppressLint("InflateParams")
-    private fun openPopupWindow() {
-        val size = requireActivity().windowManager.currentWindowMetricsPointCompat()
-        val width = (size.x * 0.8f).toInt()
-        val height = (size.y * 0.4f).toInt()
-
-        val inflater =
-            requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val popupView = inflater.inflate(R.layout.popup_window_to_folder, null)
-
-        mPopupWindow = PopupWindow(popupView, width, height)
-        mPopupWindow.animationStyle = R.style.Animation
-        mPopupWindow.isFocusable = true
-        mPopupWindow.isOutsideTouchable = true
-        mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
-        mPopupWindow.setOnDismissListener(PopupWindowDismissListener())
-        binding.homeBgV.visibility = View.VISIBLE
-
-        // 폴더 목록 recycler view 초기화
-        initFolderListRecyclerView(popupView)
-    }
-
-    // 폴더/보관함 보여주는 recycler view 초기화
-    private fun initFolderListRecyclerView(popupView: View) {
-        val folderListRV =
-            popupView.findViewById<RecyclerView>(R.id.popup_window_to_folder_menu_recycler_view)
-
-        folderListRV.adapter = folderListRVAdapter
-        folderListRVAdapter.setMyItemClickListener(object :
-            FolderListRVAdapter.MyItemClickListener {
-            override fun onFolderClick(itemBinding: ItemFolderListBinding, itemPosition: Int) {
-                // 이동하고 싶은 폴더/보관함 클릭했을 때 해당 폴더/보관함으로 채팅 이동
-                val selectedFolder = folderList[itemPosition]
-
-                // 숨긴 보관함 같은 경우
-                if (selectedFolder.status == ApplicationClass.HIDDEN) {
-                    val lockSPF = requireActivity().getSharedPreferences("lock", 0)
-                    val pattern = lockSPF.getString("pattern", "0")
-
-                    // 패턴 모드 확인
-                    // 0: 숨긴 폴더 목록을 확인하기 위한 입력 모드
-                    // 1: 메인 화면의 설정창 -> 변경 모드
-                    // 2: 폴더 화면의 설정창 -> 변경 모드
-                    // 3: 메인 화면 폴더로 보내기 -> 숨김 폴더 눌렀을 경우
-                    val modeSPF = requireActivity().getSharedPreferences("mode", 0)
-                    val editor = modeSPF.edit()
-
-                    // 여기서는 3번 모드
-                    editor.putInt("mode", 3)
-                    editor.apply()
-
-                    if (pattern.equals("0")) {
-                        // 패턴이 설정되어 있지 않은 경우 패턴 설정 페이지로
-                        val intent =
-                            Intent(requireContext(), CreatePatternActivity::class.java)
-                        startActivity(intent)
-                    } else {
-                        // 패턴이 설정되어 있는 경우 입력 페이지로 (보안을 위해)
-                        val intent = Intent(requireContext(), InputPatternActivity::class.java)
-                        startActivity(intent)
-                    }
-                }
-
-                val selectedChatList = homeRVAdapter.getSelectedItem()
-                Log.d(ApplicationClass.FRAG, "HOME/selectedChatList: $selectedChatList")
-
-                val folderIdx = folderList[itemPosition].idx
-
-                // 갠톡 이동: folderIdx, otherUserIdx
-                // 단톡 이동: folderIdx, userIdx, groupName
-                for (i in selectedChatList) {
-                    if (i.groupName != "null") database.folderContentDao()
-                        .insertOrgChat(i.chatIdx, folderIdx, userID)
-                    else database.folderContentDao().insertOtOChat(folderIdx, i.chatIdx)
-                }
-
-                // 팝업 윈도우 종료
-                mPopupWindow.dismiss()
-            }
-        })
-    }
-
     // click listener 초기화
     private fun initClickListener() {
-        Log.d(ApplicationClass.FRAG, "HOME/initClickListener")
+        Log.d(FRAG, "HOME/initClickListener")
 
         // 선택 모드 취소 버튼 클릭했을 때 기본 모드로 세팅
         binding.homeCancelIv.setOnClickListener {
-            homeRVAdapter.clearSelectedItemList()
             chatViewModel.setMode(0)
         }
 
@@ -287,20 +211,6 @@ class HomeFragment : Fragment(), LifecycleObserver {
             homeRVAdapter.removeSelectedItemList()
             chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
             Toast.makeText(requireContext(), "삭제되었습니다.", Toast.LENGTH_SHORT).show()
-        }
-
-//        // 하단 중앙 버튼 클릭 시 (선택 모드일 때만 가능하게 할 건지 의논 필요)
-//        val activityMainBnvBinding = ActivityMainBnvBinding.inflate(layoutInflater)
-//        activityMainBnvBinding.mainBnvCenterDefaultIv.setOnClickListener {
-//            openPopupWindow()
-//        }
-    }
-
-    // 팝업창 닫을 때
-    inner class PopupWindowDismissListener() : PopupWindow.OnDismissListener {
-        override fun onDismiss() {
-            chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
-            binding.homeBgV.visibility = View.INVISIBLE
         }
     }
 }

@@ -72,11 +72,10 @@
     <!-- 에러 처리 -->
     <string name="default_fail">네트워크 연결이 원활하지 않습니다.</string>
 
-
     <!-- 현재 테스트 id -->
     <!-- Manifest, ~ -->
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_app_id"></string>
     <!-- XML, / -->
-    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_ad_unit_id"></string>
 
 </resources>

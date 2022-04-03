@@ -129,18 +129,21 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         }
     }
 
+    // 기본 모드
     private fun setDefaultMode() {
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
     }
 
+    // 선택 모드
     private fun setChooseMode() {
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
     }
 
+    // 폴더 모드
     private fun setFolderMode() {
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.GONE

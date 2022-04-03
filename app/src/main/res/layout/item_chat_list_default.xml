@@ -17,7 +17,7 @@
         android:layout_marginStart="20dp"
         android:background="@color/white"
         android:scaleType="fitXY"
-        android:src="@drawable/selector_chat_list_profile"
+        android:src="@drawable/ic_profile_default"
         app:layout_constraintEnd_toStartOf="@+id/item_chat_list_name_tv"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
