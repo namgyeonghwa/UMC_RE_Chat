@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/ic_block_list_default" android:state_checked="false" />
-    <item android:drawable="@drawable/ic_block_list_touch" android:state_checked="true" />
+    <item android:drawable="@drawable/navi_blocklist" android:state_checked="false" />
+    <item android:drawable="@drawable/navi_blocklist_select" android:state_checked="true" />
 </selector>

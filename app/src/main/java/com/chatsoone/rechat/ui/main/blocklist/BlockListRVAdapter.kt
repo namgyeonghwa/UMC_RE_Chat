@@ -2,8 +2,10 @@ package com.chatsoone.rechat.ui.main.blocklist
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass.Companion.loadBitmap
@@ -17,7 +19,7 @@ class BlockListRVAdapter(
     private val myClickListener: MyClickListener
 ) : RecyclerView.Adapter<BlockListRVAdapter.ViewHolder>() {
     var chatList = ArrayList<BlockedChatList>()
-
+//?
     interface MyClickListener {
         fun onRemoveItem(blockList: BlockedChatList)
     }

@@ -211,6 +211,9 @@ class HomeRVAdapter(
     @SuppressLint("NotifyDataSetChanged")
     fun clearSelectedItemList() {
         selectedItemList.clear()
+        // getSelectedItemList() 위해 모두 초기화
+        for(i in chatList)
+            i.isChecked=false
         notifyDataSetChanged()
     }
 

@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.PopupWindow
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
@@ -179,6 +180,8 @@ class ChatActivity : AppCompatActivity() {
 
         // 삭제하는 경우
         binding.chatDeleteFab.setOnClickListener {
+            Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT)
+
             val data = chatRVAdapter.removeSelectedItemList()
             if (data != null) chatListData = data
 

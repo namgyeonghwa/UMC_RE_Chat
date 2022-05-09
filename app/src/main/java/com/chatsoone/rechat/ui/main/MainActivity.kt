@@ -6,11 +6,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
-import android.util.SparseBooleanArray
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageView
@@ -18,11 +16,11 @@ import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass
 import com.chatsoone.rechat.ApplicationClass.Companion.ACT
@@ -105,8 +103,30 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
 
         if (iconList.isEmpty()) {
             // 아이콘 목록 추가
+            database.iconDao().insert(Icon(R.drawable.folder_bear))
+            database.iconDao().insert(Icon(R.drawable.folder_cat))
+            database.iconDao().insert(Icon(R.drawable.folder_dog))
+            database.iconDao().insert(Icon(R.drawable.folder_rabbit))
+
+            database.iconDao().insert(Icon(R.drawable.folder_exctie))
+            database.iconDao().insert(Icon(R.drawable.folder_love))
+            database.iconDao().insert(Icon(R.drawable.folder_twinkle))
+
+            database.iconDao().insert(Icon(R.drawable.folder_spring))
+            database.iconDao().insert(Icon(R.drawable.folder_summer))
+            database.iconDao().insert(Icon(R.drawable.folder_fall))
+            database.iconDao().insert(Icon(R.drawable.folder_winter))
+
+            database.iconDao().insert(Icon(R.drawable.folder_simple_babypink))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_pink))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_skyblue))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_blue))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_yellow))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_orange))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_gray))
+            database.iconDao().insert(Icon(R.drawable.folder_simple_more_gray))
             // database.iconDao().insert(Icon())
-            // iconList = database.iconDao().getIconList() as ArrayList
+            iconList = database.iconDao().getIconList() as ArrayList
         }
     }
 
@@ -134,6 +154,8 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
+        Log.d(ACT, "MAIN/changesetDefaultMode")
+
     }
 
     // 선택 모드
@@ -141,6 +163,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
+        Log.d(ACT, "MAIN/changeChooseMode")
     }
 
     // 폴더 모드
@@ -161,7 +184,11 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     private fun initHiddenFolder() {
         val spf = getSharedPreferences("lock_correct", 0)
 
-        if (spf.getInt("correct", 0) == 1) replaceFragment(MyHiddenFolderFragment())
+        Log.d("mainspfcheck", "spf is ${spf.getInt("correct", 0)}")
+        if (spf.getInt("correct", 0) == 1) {
+            replaceFragment(MyHiddenFolderFragment())
+            Log.d("mainspfcheck", "this is hidden")
+        }
         else if (spf.getInt("correct", 0) == -1) replaceFragment(MyFolderFragment())
         else replaceFragment(BlockListFragment())
     }
@@ -182,29 +209,47 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     }
 
     private fun initBottomNavigationView() {
-        Log.d(ACT, "MAIN/initBottomNavigationView")
-
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.main_frame_layout, HomeFragment())
-            .commitAllowingStateLoss()
+        val correctSPF = getSharedPreferences("lock_correct", MODE_PRIVATE)
+        // 잠금 모드이면
+        if (correctSPF.getInt("correct", 0) == 1) {
+            //binding.mainLayout.mainBnv.selectedItemId=R.id.main_bnv_hidden_folder
+            replaceFragment(MyHiddenFolderFragment())
+        }
+        else{
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.main_frame_layout, HomeFragment())
+                .commitAllowingStateLoss()
+        }
 
         binding.mainLayout.mainBnv.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.main_bnv_home -> {
                     // 전체 채팅
+                    val editor=correctSPF.edit()
+                    editor.putInt("correct", 3) // 임의의 값
+                    editor.apply()
+
                     replaceFragment(HomeFragment())
                     return@setOnItemSelectedListener true
                 }
 
                 R.id.main_bnv_block_list -> {
                     // 차단 목록
+                    val editor=correctSPF.edit()
+                    editor.putInt("correct", 3) // 임의의 값
+                    editor.apply()
+
                     replaceFragment(BlockListFragment())
                     return@setOnItemSelectedListener true
                 }
 
                 R.id.main_bnv_folder -> {
                     // 보관함
+                    val editor=correctSPF.edit()
+                    editor.putInt("correct", 3) // 임의의 값
+                    editor.apply()
+
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.main_frame_layout, MyFolderFragment())
                         .commitAllowingStateLoss()
@@ -485,6 +530,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
             // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
             setFolderIcon(name)
         }
+        chatViewModel.setMode(2)
     }
 
     // 새폴더 아이콘 설정
@@ -536,6 +582,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 mPopupWindow.dismiss()
             }
         })
+        chatViewModel.setMode(2)
     }
 
     // 드로어가 나와있을 때 뒤로 가기 버튼을 한 경우 뒤로 가기 버튼에 대한 이벤트를 처리
@@ -552,7 +599,10 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     // 팝업창 닫을 때
     inner class PopupWindowDismissListener() : PopupWindow.OnDismissListener {
         override fun onDismiss() {
-            chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
+            if(chatViewModel.mode.value==0)
+                chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
+            else if(chatViewModel.mode.value==2)
+                chatViewModel.setMode(2)
             binding.mainLayout.mainBgV.visibility = View.INVISIBLE
         }
     }

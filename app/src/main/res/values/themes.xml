@@ -47,4 +47,9 @@
         <item name="android:popupBackground">@drawable/bg_popup_menu_folder_option</item>
     </style>
 
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/bottom_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/bottom_slide_out</item>
+    </style>
+
 </resources>

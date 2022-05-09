@@ -1,17 +1,18 @@
 package com.chatsoone.rechat.ui.main.home
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.util.SparseBooleanArray
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.PopupWindow
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
@@ -38,6 +39,8 @@ import com.chatsoone.rechat.ui.main.MainActivity
 import com.chatsoone.rechat.ui.pattern.CreatePatternActivity
 import com.chatsoone.rechat.ui.pattern.InputPatternActivity
 import com.chatsoone.rechat.util.getID
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import java.util.zip.Inflater
 
 class HomeFragment : Fragment(), LifecycleObserver {
     private lateinit var binding: FragmentHomeBinding
@@ -52,7 +55,6 @@ class HomeFragment : Fragment(), LifecycleObserver {
     private var chatList = ArrayList<ChatList>()
     private val chatViewModel by activityViewModels<ChatViewModel>()
     private val selectedItemViewModel by activityViewModels<ItemViewModel>()
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -61,6 +63,7 @@ class HomeFragment : Fragment(), LifecycleObserver {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         database = AppDatabase.getInstance(requireContext())!!
         folderListRVAdapter = FolderListRVAdapter(requireContext())
+
         initRecyclerView()
         initClickListener()
         return binding.root
@@ -76,7 +79,9 @@ class HomeFragment : Fragment(), LifecycleObserver {
             // 모든 데이터의 뷰 타입 변경
             homeRVAdapter.setAllViewType(it)
 
-            if (it == 0) setDefaultMode()
+            if (it == 0) {
+                setDefaultMode()
+            }
             else setChooseMode()
 
             Log.d(FRAG, "HOME/mode: $it")
@@ -145,6 +150,9 @@ class HomeFragment : Fragment(), LifecycleObserver {
 //                    homeRVAdapter.setChecked(position)
 //                    homeRVAdapter.setChooseChecked(itemBinding, position)
                     selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
+                    if(homeRVAdapter.getSelectedItem().size==0)
+                        chatViewModel.setMode(0)
+
                 }
             })
 
@@ -159,27 +167,22 @@ class HomeFragment : Fragment(), LifecycleObserver {
 
     // 기본 모드 세팅
     private fun setDefaultMode() {
+
         homeRVAdapter.clearSelectedItemList()
         selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
 
-        binding.homeTitleTv.text = "전체 채팅"  // 디자인에 따라 변경
-        binding.homeCancelIv.visibility = View.GONE
-        binding.homeDeleteIv.visibility = View.GONE
-        binding.homeBlockIv.visibility = View.GONE
-        binding.homeCloudIv.visibility = View.VISIBLE
-        binding.homeLayout.setBackgroundColor(Color.parseColor("#F2F2F2"))
+        binding.homeTitleTv.visibility=View.VISIBLE
+        binding.homeSettingIv.visibility=View.GONE
+        binding.homeLayout.setBackgroundColor(Color.parseColor("#B9E3FB"))
     }
 
     // 선택 모드 세팅
     private fun setChooseMode() {
         selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
 
-        binding.homeTitleTv.text = null // 디자인에 따라 변경
-        binding.homeCancelIv.visibility = View.VISIBLE
-        binding.homeDeleteIv.visibility = View.VISIBLE
-        binding.homeBlockIv.visibility = View.VISIBLE
-        binding.homeCloudIv.visibility = View.GONE
-        binding.homeLayout.setBackgroundColor(Color.parseColor("#FFFFFF"))
+        binding.homeTitleTv.visibility = View.VISIBLE // 디자인에 따라 변경
+        binding.homeSettingIv.visibility = View.VISIBLE
+        binding.homeLayout.setBackgroundColor(Color.parseColor("#B9E3FB"))
     }
 
     // click listener 초기화
@@ -187,12 +190,26 @@ class HomeFragment : Fragment(), LifecycleObserver {
         Log.d(FRAG, "HOME/initClickListener")
 
         // 선택 모드 취소 버튼 클릭했을 때 기본 모드로 세팅
-        binding.homeCancelIv.setOnClickListener {
-            chatViewModel.setMode(0)
+        binding.homeSettingIv.setOnClickListener {
+            showDialog()
         }
+    }
 
-        // 차단하기 클릭했을 때
-        binding.homeBlockIv.setOnClickListener {
+    // Bottom dialog 보여주기
+    private fun showDialog(){
+        val dialog=Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.fragment_bottom_dialog)
+
+        // 삭제 누를시
+        dialog.findViewById<TextView>(R.id.bottom_dialog_delete_tv).setOnClickListener {
+            homeRVAdapter.removeSelectedItemList()
+            chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
+            Toast.makeText(requireContext(), "삭제되었습니다.", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+        // 차단 누를시
+        dialog.findViewById<TextView>(R.id.bottom_dialog_block_tv).setOnClickListener {
             val selectedChatList = homeRVAdapter.getSelectedItem()
             for (i in selectedChatList) {
                 if (i.groupName != "null") i.groupName?.let { it1 ->
@@ -204,13 +221,18 @@ class HomeFragment : Fragment(), LifecycleObserver {
             homeRVAdapter.blockSelectedItemList()
             chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
             Toast.makeText(requireContext(), "차단되었습니다.", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
-
-        // 삭제하기 클릭했을 때
-        binding.homeDeleteIv.setOnClickListener {
-            homeRVAdapter.removeSelectedItemList()
+        // 취소 누를시
+        dialog.findViewById<TextView>(R.id.bottom_dialog_cancel_tv).setOnClickListener {
             chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
-            Toast.makeText(requireContext(), "삭제되었습니다.", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
+        dialog.show()
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.attributes?.windowAnimations=R.style.DialogAnimation
+        dialog.window?.setGravity(Gravity.BOTTOM)
+
     }
 }

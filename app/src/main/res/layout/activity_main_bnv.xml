@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_bottom_navigation_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <!-- 프래그먼트 띄울 공간 -->
     <FrameLayout
         android:id="@+id/main_frame_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/main_bnv"
+        app:layout_constraintBottom_toTopOf="@id/navi_center_temp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -26,87 +28,97 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- bottom navigation bar -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+        <com.chatsoone.rechat.ui.main.CustomBottomViewJava
         android:id="@+id/main_bnv"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/design_bnv_height"
-        android:background="@drawable/bg_bnv"
-        app:itemBackground="@color/white"
-        app:itemIconSize="25dp"
-        app:itemIconTint="@drawable/selector_main_bnv_icon"
-        app:itemTextColor="@drawable/selector_main_bnv_icon"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="100dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/menu_main_bnv" />
-
-    <!-- 하단 중앙 버튼 (배경) -->
-    <ImageView
-        android:id="@+id/main_bnv_bg_center_iv"
-        android:layout_width="130dp"
-        android:layout_height="130dp"
-        android:layout_marginBottom="-5dp"
-        android:background="@android:color/transparent"
-        android:outlineProvider="none"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_bg_center_btn"
-        android:translationZ="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/main_bnv"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/menu_main_bnv"
+        app:itemIconSize="32dp"
+        app:labelVisibilityMode="unlabeled"
+        app:itemIconTint="@drawable/selector_main_bnv_icon"
+        app:itemRippleColor="@color/transparent"
+        android:translationZ="5dp"
+        android:layout_marginBottom="-15dp"
+        />
+
+    <!-- bottom navigation bar -->
+<!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
+<!--        android:id="@+id/main_bnv"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="@dimen/design_bnv_height"-->
+<!--        app:itemBackground="@color/white"-->
+<!--        app:itemIconSize="25dp"-->
+<!--        app:itemIconTint="@drawable/selector_main_bnv_icon"-->
+<!--        app:itemTextColor="@drawable/selector_main_bnv_icon"-->
+<!--        app:labelVisibilityMode="labeled"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        android:background="@drawable/navi"-->
+<!--        app:menu="@menu/menu_main_bnv" />-->
+
+    <!-- 하단 중앙 버튼 위치 -->
+    <View
+        android:id="@+id/navi_center_temp"
+        android:layout_width="65dp"
+        android:layout_height="50dp"
+        android:translationZ="0dp"
+        android:background="@null"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="10dp"/>
 
     <!-- 하단 중앙 버튼 (기본 모드) -->
     <ImageView
         android:id="@+id/main_bnv_center_default_iv"
-        android:layout_width="40dp"
-        android:layout_height="35dp"
-        android:background="@android:color/transparent"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
         android:outlineProvider="none"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_cloud"
-        android:translationZ="10dp"
+        android:src="@drawable/navi_main"
+        android:translationZ="15dp"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintEnd_toEndOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintStart_toStartOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintVertical_bias="0.47" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="10dp" />
 
     <!-- 하단 중앙 버튼 (선택 모드) -->
     <ImageView
         android:id="@+id/main_bnv_center_choose_iv"
-        android:layout_width="40dp"
-        android:layout_height="35dp"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
         android:background="@android:color/transparent"
         android:outlineProvider="none"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_cloud_move"
-        android:translationZ="10dp"
+        android:src="@drawable/navi_move"
+        android:translationZ="15dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintEnd_toEndOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintStart_toStartOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintVertical_bias="0.47" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="10dp"
+         />
 
     <!-- 하단 중앙 버튼 (폴더 모드) -->
     <ImageView
         android:id="@+id/main_bnv_center_folder_iv"
-        android:layout_width="40dp"
-        android:layout_height="35dp"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
         android:background="@android:color/transparent"
         android:outlineProvider="none"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_cloud_add"
-        android:translationZ="10dp"
+        android:src="@drawable/navi_add"
+        android:translationZ="15dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintEnd_toEndOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintStart_toStartOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintTop_toTopOf="@id/main_bnv_bg_center_iv"
-        app:layout_constraintVertical_bias="0.47" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="10dp" />
 
     <!-- 전체 화면 흐리게 -->
     <View
@@ -124,3 +136,11 @@
         app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--<com.example.saidi.custombottobar.view.CurvedBottomNavigationView-->
+<!--android:id="@+id/customBottomBar"-->
+<!--android:layout_width="match_parent"-->
+<!--android:layout_height="72dp"-->
+<!--app:layout_constraintBottom_toBottomOf="parent"-->
+<!--app:layout_constraintEnd_toEndOf="parent"-->
+<!--app:layout_constraintStart_toStartOf="parent"/>-->
