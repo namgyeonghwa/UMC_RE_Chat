@@ -498,6 +498,10 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 mPopupWindow.dismiss()
             }
         })
+
+        database.folderDao().getFolderList(userID).observe(this) {
+            folderListRVAdapter.addFolderList(it as ArrayList<Folder>)
+        }
     }
 
     // 새폴더 이름 설정
