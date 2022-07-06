@@ -304,7 +304,8 @@ class MyFolderFragment : BaseFragment<FragmentMyFolderBinding>(FragmentMyFolderB
                 val iconBitmapAsByte = baos.toByteArray()
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
-                val newFolderPosition = folderList.size - 1
+                val newFolderPosition = if (folderList.size == 0) 0 else folderList.size - 1
+
                 val value = TypedValue()
                 resources.getValue(selectedIcon.iconImage, value, true)
                 if (value.string != null) {

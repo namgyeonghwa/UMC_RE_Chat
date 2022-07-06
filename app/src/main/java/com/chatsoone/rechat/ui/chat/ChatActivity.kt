@@ -107,7 +107,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         chatRVAdapter = ChatRVAdapter(this, size, object : ChatRVAdapter.MyItemClickListener {
             // 채팅 삭제
             override fun onRemoveChat() {
-                Log.d("chatPositionCheck", "지우려는 채팅들 chatLIst: $chatList")
+                Log.d(ACT, "CHAT/지우려는 채팅들 chatList: $chatList")
 
                 // Server API: 채팅들 지우기
                 // 선택된 chatIdx들 모두 가져와서 지우기
@@ -124,7 +124,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
             // 선택 모드
             override fun onChooseChatClick(view: View, position: Int) {
                 chatRVAdapter.setChecked(position)
-                Log.d("chatPositionCheck", "selected position $position")
+                Log.d(ACT, "CHAT/selected position $position")
             }
         })
         chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)

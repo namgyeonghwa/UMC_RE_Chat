@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
-import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.util.TypedValue
@@ -16,12 +14,10 @@ import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.GravityCompat
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass
 import com.chatsoone.rechat.ApplicationClass.Companion.ACT
@@ -39,7 +35,6 @@ import com.chatsoone.rechat.data.remote.folder.FolderService
 import com.chatsoone.rechat.databinding.ActivityMainBinding
 import com.chatsoone.rechat.databinding.ItemFolderListBinding
 import com.chatsoone.rechat.databinding.ItemIconBinding
-import com.chatsoone.rechat.ui.*
 import com.chatsoone.rechat.ui.adapter.FolderListRVAdapter
 import com.chatsoone.rechat.ui.adapter.IconRVAdapter
 import com.chatsoone.rechat.ui.explain.ExplainActivity
@@ -50,10 +45,7 @@ import com.chatsoone.rechat.ui.main.home.HomeFragment
 import com.chatsoone.rechat.ui.pattern.CreatePatternActivity
 import com.chatsoone.rechat.ui.pattern.InputPatternActivity
 import com.chatsoone.rechat.ui.setting.PrivacyInfoActivity
-import com.chatsoone.rechat.ui.view.ChatView
-import com.chatsoone.rechat.ui.view.FolderAPIView
-import com.chatsoone.rechat.ui.view.FolderListView
-import com.chatsoone.rechat.ui.view.GetChatListView
+import com.chatsoone.rechat.ui.view.*
 import com.chatsoone.rechat.ui.viewmodel.ChatTypeViewModel
 import com.chatsoone.rechat.ui.viewmodel.ItemViewModel
 import com.chatsoone.rechat.ui.viewmodel.LockViewModel
@@ -66,7 +58,8 @@ import com.google.android.material.navigation.NavigationView
 import java.io.ByteArrayOutputStream
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate),
-    NavigationView.OnNavigationItemSelectedListener, ChatView, FolderListView, FolderAPIView {
+    NavigationView.OnNavigationItemSelectedListener, ChatView, CreateFolderView, FolderListView,
+    FolderAPIView {
     private lateinit var database: AppDatabase
     private lateinit var selectedItemList: ArrayList<ChatList>
     private lateinit var mPopupWindow: PopupWindow
@@ -80,6 +73,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private lateinit var folderService: FolderService
 
     private var userID = getID()
+    private var createMode: Boolean = false
+    private var newFolderName: String? = null
+    private var newFolderIcon: String? = null
     private var iconList = ArrayList<Icon>()
     private var folderList = ArrayList<FolderList>()
     private var permission: Boolean = true
@@ -335,7 +331,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         // 선택 모드일 때
         binding.mainLayout.mainBnvCenterChooseIv.setOnClickListener {
             if (selectedItemList.isNotEmpty()) {
-                openPopupWindow()
+                initFolder()
+//                openPopupWindow()
             }
         }
 
@@ -347,6 +344,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     // 폴더 초기화
     private fun initFolder() {
+        Log.d(ACT, "MAIN/initFolder")
+
         folderListRVAdapter = FolderListRVAdapter(this)
         folderService.getFolderList(this, userID)
     }
@@ -438,7 +437,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     // 폴더/보관함 보여주는 recycler view 초기화
     private fun initFolderListRecyclerView(popupView: View) {
-        folderListRVAdapter = FolderListRVAdapter(this)
+        folderListRVAdapter.addFolderList(folderList)
 
         val folderListRV =
             popupView.findViewById<RecyclerView>(R.id.popup_window_to_folder_menu_recycler_view)
@@ -541,30 +540,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 val iconBitmapAsByte = baos.toByteArray()
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
-                val newFolderPosition = folderList.size - 1
                 val value = TypedValue()
                 resources.getValue(selectedIcon.iconImage, value, true)
 
                 if (value.string != null) {
-                    folderService.changeFolderName(
+                    folderService.createFolder(
                         this@MainActivity,
                         userID,
-                        folderList[newFolderPosition].folderIdx,
-                        FolderList(
-                            folderList[newFolderPosition].folderIdx,
-                            name,
-                            value.string.toString()
-                        )
-                    )
-                    folderService.changeFolderIcon(
-                        this@MainActivity,
-                        userID,
-                        folderList[newFolderPosition].folderIdx,
-                        FolderList(
-                            folderList[newFolderPosition].folderIdx,
-                            name,
-                            value.string.toString()
-                        )
+                        name,
+                        value.string.toString()
                     )
                 }
 
@@ -572,6 +556,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             }
         })
         chatViewModel.setMode(2)
+    }
+
+    private fun createFolder(name: String, icon: String) {
+        Log.d(ACT, "MAIN/createFolder")
+
+//        val newFolderPosition = if (folderList.size == 0) 0 else folderList.size - 1
+        val newFolderPosition = folderList.size - 1
+
+        folderService.changeFolderName(
+            this@MainActivity,
+            userID,
+            folderList[newFolderPosition].folderIdx,
+            FolderList(
+                folderList[newFolderPosition].folderIdx,
+                name,
+                icon
+            )
+        )
+        folderService.changeFolderIcon(
+            this@MainActivity,
+            userID,
+            folderList[newFolderPosition].folderIdx,
+            FolderList(
+                folderList[newFolderPosition].folderIdx,
+                name,
+                icon
+            )
+        )
     }
 
     // 드로어가 나와있을 때 뒤로 가기 버튼을 한 경우 뒤로 가기 버튼에 대한 이벤트를 처리
@@ -606,9 +618,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
         Log.d(ACT, "MAIN/onFolderListSuccess/folderList: $folderList")
+        Log.d(ACT, "MAIN/onFolderListSuccess/createMode: $createMode")
+
         this.folderList.clear()
         this.folderList.addAll(folderList)
-        openPopupWindow()
+
+        if (createMode) {
+            createFolder(newFolderName!!, newFolderIcon!!)
+            createMode = false
+        } else {
+            openPopupWindow()
+        }
     }
 
     override fun onFolderListFailure(code: Int, message: String) {
@@ -617,10 +637,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun onFolderAPISuccess() {
         Log.d(ACT, "MAIN/onFolderAPISuccess")
-        initFolder()
+//        initFolder()
     }
 
     override fun onFolderAPIFailure(code: Int, message: String) {
         Log.d(ACT, "MAIN/onFolderAPIFailure/code: $code, message: $message")
+    }
+
+    override fun onCreateFolderSuccess(name: String, icon: String) {
+        Log.d(ACT, "MAIN/onCreateFolderSuccess/name: $name, icon: $icon")
+
+        createMode = true
+        newFolderName = name
+        newFolderIcon = icon
+
+        Log.d(ACT, "MAIN/onCreateFolderSuccess/createMode: $createMode")
+
+        initFolder()
+    }
+
+    override fun onCreateFolderFailure(code: Int, message: String) {
+        Log.d(ACT, "MAIN/onCreateFolderFailure/code: $code, message: $message")
     }
 }

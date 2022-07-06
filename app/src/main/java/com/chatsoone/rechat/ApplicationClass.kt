@@ -49,7 +49,7 @@ class ApplicationClass : Application() {
 
         // server api
         lateinit var retrofit: Retrofit
-        private const val DEV_URL: String = ""
+        private const val DEV_URL: String = "http://3.37.76.21"
         private const val PROD_URL: String = ""
         const val BASE_URL: String = DEV_URL
 
@@ -128,7 +128,7 @@ class ApplicationClass : Application() {
         super.onCreate()
 
         // kakao sdk 연결
-        KakaoSdk.init(this, "")
+        KakaoSdk.init(this, "344ce6395e3e90c63689e4fef30067f0")
 
         // client definition
         // Http 통신할 때 클라이언트 옵션 설정해주는 부분

@@ -6,13 +6,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.chatsoone.rechat.ApplicationClass.Companion.RV
 import com.chatsoone.rechat.R
 import com.chatsoone.rechat.data.remote.FolderList
 import com.chatsoone.rechat.databinding.ItemFolderListBinding
 
 class FolderListRVAdapter(private val mContext: Context) :
     RecyclerView.Adapter<FolderListRVAdapter.ViewHolder>() {
-    private val tag = "RV/FOLDER-LIST"
     private val folderList = ArrayList<FolderList>()
 
     // 클릭 인터페이스
@@ -71,12 +71,12 @@ class FolderListRVAdapter(private val mContext: Context) :
         // res/drawable/파일명.png
         val folderImgStringArray = folderImgString.split("/", ".")
         val folderImgName = folderImgStringArray[2]
-        Log.d(tag, "folderImgStringArray: $folderImgStringArray")
-        Log.d(tag, "folderImgName: $folderImgName")
+        Log.d(RV, "FOLDERLIST/folderImgStringArray: $folderImgStringArray")
+        Log.d(RV, "FOLDERLIST/folderImgName: $folderImgName")
 
         val folderImgID =
             mContext.resources.getIdentifier(folderImgName, "drawable", mContext.packageName)
-        Log.d(tag, "folderImgID: $folderImgID")
+        Log.d(RV, "FOLDERLIST/folderImgID: $folderImgID")
         return folderImgID
     }
 }

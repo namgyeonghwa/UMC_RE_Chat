@@ -5,6 +5,7 @@ import com.chatsoone.rechat.ApplicationClass.Companion.SERVICE
 import retrofit2.Callback
 import com.chatsoone.rechat.ApplicationClass.Companion.retrofit
 import com.chatsoone.rechat.data.remote.*
+import com.chatsoone.rechat.ui.view.CreateFolderView
 import com.chatsoone.rechat.ui.view.FolderAPIView
 import com.chatsoone.rechat.ui.view.FolderListView
 import com.chatsoone.rechat.ui.view.HiddenFolderListView
@@ -62,7 +63,7 @@ class FolderService {
     }
 
     // 폴더 생성하기
-    fun createFolder(folderView: FolderAPIView, userIdx: Long) {
+    fun createFolder(folderView: CreateFolderView, userIdx: Long, name: String, icon: String) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.createFolder(userIdx).enqueue(object : Callback<ServerResponse> {
@@ -73,14 +74,14 @@ class FolderService {
                 val resp = response.body()!!
 
                 when (resp.code) {
-                    1000 -> folderView.onFolderAPISuccess()
-                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
+                    1000 -> folderView.onCreateFolderSuccess(name, icon)
+                    else -> folderView.onCreateFolderFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<ServerResponse>, t: Throwable) {
                 Log.d(SERVICE, "FOLDER/ ${t.message}")
-                folderView.onFolderAPIFailure(400, "네트워크 오류")
+                folderView.onCreateFolderFailure(400, "네트워크 오류")
             }
         })
     }

@@ -8,6 +8,7 @@ import android.util.SparseBooleanArray
 import android.view.*
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
+import com.chatsoone.rechat.ApplicationClass.Companion.RV
 import com.chatsoone.rechat.ApplicationClass.Companion.loadBitmap
 import com.chatsoone.rechat.data.remote.ChatList
 import com.chatsoone.rechat.data.remote.ChatListViewType
@@ -61,9 +62,7 @@ class ChatRVAdapter(
     }
 
     // 뷰홀더에 데이터 바인딩을 해줘야 할 때마다 호출되는 함수
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-
         when (chatList[position].viewType) {
             ChatListViewType.CHOOSE -> {
                 (holder as ChooseViewHolder).bind(chatList[position])
@@ -88,7 +87,8 @@ class ChatRVAdapter(
         chatList = chatList.filter { chatlist -> !chatlist.isChecked } as ArrayList<ChatList>
         // chatService.getChat(this, userID, chatIdx = chatList[0].chatIdx, chatList[0].groupName)
         notifyDataSetChanged()
-        Log.d("afterDeleteChat", "after_remove_rva: $chatList")
+
+        Log.d(RV, "CHAT/removeChat/chatList: $chatList")
 
         return if (chatList.isNotEmpty()) chatList[0]
         else null
@@ -152,6 +152,8 @@ class ChatRVAdapter(
     }
 
     fun setChecked(position: Int) {
+        Log.d(RV, "CHAT/setChecked")
+
         chatList[position].isChecked = !chatList[position].isChecked
         notifyItemChanged(position)
     }
@@ -329,14 +331,14 @@ class ChatRVAdapter(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    override fun onGetChatSuccess(chats: ArrayList<ChatList>) {
-        Log.d("afterDeleteChat", "onGetChatSuccess/ $chats")
-        chatList.clear()
-        chatList.addAll(chats)
+    override fun onGetChatSuccess(chatList: ArrayList<ChatList>) {
+        Log.d(RV, "CHAT/onGetChatSuccess/chatList: $chatList")
+        this.chatList.clear()
+        this.chatList.addAll(chatList)
         notifyDataSetChanged()
     }
 
     override fun onGetChatFailure(code: Int, message: String) {
-        Log.d("afterDeleteChat", "onGetChatFailure/ $code,  $message")
+        Log.d(RV, "CHAT/onGetChatFailure/code: $code, message: $message")
     }
 }

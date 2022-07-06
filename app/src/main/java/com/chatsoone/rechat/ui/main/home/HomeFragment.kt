@@ -52,8 +52,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
     override fun initAfterBinding() {
         database = AppDatabase.getInstance(requireContext())!!
         chatService = ChatService()
+        homeRVAdapter = HomeRVAdapter(requireContext())
 
-        initRecyclerView()
         initClickListener()
     }
 
@@ -81,7 +81,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
     }
 
     private fun initChatList() {
-        homeRVAdapter = HomeRVAdapter(requireContext())
         chatService.getChatList(this, userID)
     }
 

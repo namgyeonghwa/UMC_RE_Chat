@@ -1,22 +1,12 @@
 package com.chatsoone.rechat.ui.explain
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import com.chatsoone.rechat.base.BaseFragment
 import com.chatsoone.rechat.databinding.FragmentExplainInBinding
 
-class ExplainInFragment(private val imageResource: Int) : Fragment() {
-    private lateinit var binding: FragmentExplainInBinding
+class ExplainInFragment(private val imageResource: Int) :
+    BaseFragment<FragmentExplainInBinding>(FragmentExplainInBinding::inflate) {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentExplainInBinding.inflate(layoutInflater)
+    override fun initAfterBinding() {
         binding.explainInIv.setImageResource(imageResource)
-        return binding.root
     }
 }
