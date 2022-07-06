@@ -1,6 +1,7 @@
 package com.chatsoone.rechat.ui.main.hiddenfolder
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -8,16 +9,19 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.R
-import com.chatsoone.rechat.data.entity.Folder
+import com.chatsoone.rechat.data.remote.FolderList
 import com.chatsoone.rechat.databinding.ItemMyHiddenFolderBinding
 
-class MyHiddenFolderRVAdapter(private val fragment: MyHiddenFolderFragment) :
+class MyHiddenFolderRVAdapter(
+    private val fragment: MyHiddenFolderFragment,
+    private val mContext: Context
+) :
     RecyclerView.Adapter<MyHiddenFolderRVAdapter.ViewHolder>() {
     private lateinit var popupMenu: PopupMenu
     private lateinit var itemHiddenFolderBinding: ItemMyHiddenFolderBinding
     private lateinit var mItemClickListener: MyItemClickListener
 
-    private val hiddenFolderList = ArrayList<Folder>()
+    private val hiddenFolderList = ArrayList<FolderList>()
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -25,7 +29,11 @@ class MyHiddenFolderRVAdapter(private val fragment: MyHiddenFolderFragment) :
         fun onRemoveFolder(folderIdx: Int)
         fun onFolderClick(view: View, position: Int)
         fun onFolderLongClick(popupMenu: PopupMenu)
-        fun onFolderNameLongClick(itemHiddenFolderBinding: ItemMyHiddenFolderBinding, folderIdx: Int)
+        fun onFolderNameLongClick(
+            itemHiddenFolderBinding: ItemMyHiddenFolderBinding,
+            position: Int,
+            folderIdx: Int
+        )
     }
 
     // 리스너 객체를 외부에서 전달받는 함수
@@ -55,7 +63,11 @@ class MyHiddenFolderRVAdapter(private val fragment: MyHiddenFolderFragment) :
 
         // 폴더 이름 롱클릭 시 이름 변경할 수 있도록
         itemHiddenFolderBinding.itemHiddenFolderTv.setOnLongClickListener {
-            mItemClickListener.onFolderNameLongClick(itemHiddenFolderBinding, position)
+            mItemClickListener.onFolderNameLongClick(
+                itemHiddenFolderBinding,
+                position,
+                hiddenFolderList[position].folderIdx
+            )
             return@setOnLongClickListener false
         }
 
@@ -81,24 +93,29 @@ class MyHiddenFolderRVAdapter(private val fragment: MyHiddenFolderFragment) :
                         // 이름 바꾸기
                         fragment.changeFolderName(
                             itemHiddenFolderBinding,
-                            hiddenFolderList[position].idx
+                            position,
+                            hiddenFolderList[position].folderIdx
                         )
                     }
 
                     R.id.popup_folder_edit_menu_2 -> {
                         // 아이콘 바꾸기
-                        fragment.changeIcon(itemHiddenFolderBinding, position, hiddenFolderList)
+                        fragment.changeIcon(
+                            itemHiddenFolderBinding,
+                            position,
+                            hiddenFolderList[position].folderIdx
+                        )
                     }
 
                     R.id.popup_folder_edit_menu_3 -> {
                         // 삭제하기
-                        mItemClickListener.onRemoveFolder(hiddenFolderList[position].idx)
+                        mItemClickListener.onRemoveFolder(hiddenFolderList[position].folderIdx)
                         removeFolder(position)
                     }
 
                     R.id.popup_folder_edit_menu_4 -> {
                         // 내폴더로 보내기 (숨김 해제)
-                        mItemClickListener.onShowFolder(hiddenFolderList[position].idx)
+                        mItemClickListener.onShowFolder(hiddenFolderList[position].folderIdx)
                         removeFolder(position)
                     }
                 }
@@ -115,7 +132,7 @@ class MyHiddenFolderRVAdapter(private val fragment: MyHiddenFolderFragment) :
 
     // folder list 추가 및 연결
     @SuppressLint("NotifyDataSetChanged")
-    fun addFolderList(folderList: ArrayList<Folder>) {
+    fun addFolderList(folderList: ArrayList<FolderList>) {
         this.hiddenFolderList.clear()
         this.hiddenFolderList.addAll(folderList)
         notifyDataSetChanged()
@@ -129,16 +146,35 @@ class MyHiddenFolderRVAdapter(private val fragment: MyHiddenFolderFragment) :
     }
 
     // 선택된 폴더 객체 반환
-    fun getSelectedFolder(position: Int): Folder {
+    fun getSelectedFolder(position: Int): FolderList {
         return hiddenFolderList[position]
     }
 
     // 뷰홀더
     inner class ViewHolder(val itemHiddenFolderBinding: ItemMyHiddenFolderBinding) :
         RecyclerView.ViewHolder(itemHiddenFolderBinding.root) {
-        fun bind(folder: Folder) {
+        fun bind(folder: FolderList) {
             itemHiddenFolderBinding.itemHiddenFolderTv.text = folder.folderName
-            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg!!)
+
+            if (folder.folderImg != null) {
+                val folderImgID = getFolderImgResource(folder.folderImg)
+                if (folderImgID != 0) {
+                    itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folderImgID)
+                } else {
+                    itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_bear)
+                }
+            } else {
+                itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_bear)
+            }
+
         }
+    }
+
+    private fun getFolderImgResource(folderImgString: String): Int {
+        // res/drawable/파일명.png
+        val folderImgStringArray = folderImgString.split("/", ".")
+        val folderImgName = folderImgStringArray[2]
+
+        return mContext.resources.getIdentifier(folderImgName, "drawable", mContext.packageName)
     }
 }

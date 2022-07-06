@@ -1,23 +1,18 @@
 package com.chatsoone.rechat.ui.permission
 
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import com.chatsoone.rechat.ApplicationClass.Companion.ACT
 import com.chatsoone.rechat.ApplicationClass.Companion.currentWindowMetricsPointCompat
 import com.chatsoone.rechat.NotificationListener
+import com.chatsoone.rechat.base.BaseActivity
 import com.chatsoone.rechat.databinding.ActivityPermissionBinding
 import com.chatsoone.rechat.util.permissionGrantred
 
-class PermissionActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityPermissionBinding
+class PermissionActivity :
+    BaseActivity<ActivityPermissionBinding>(ActivityPermissionBinding::inflate) {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityPermissionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+    override fun initAfterBinding() {
         getPermission()
         initImageSize()
     }

@@ -1,13 +1,9 @@
 package com.chatsoone.rechat.ui.chat
 
 import android.annotation.SuppressLint
-import android.graphics.Insets
 import android.graphics.Point
-import android.os.Build
-import android.util.Log
 import android.view.*
 import android.widget.PopupMenu
-import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass.Companion.loadBitmap
 import com.chatsoone.rechat.R
@@ -25,10 +21,8 @@ class FolderContentRVAdapter(
     private val size: Point,
     private val mItemClickListener: MyClickListener
 ) : RecyclerView.Adapter<FolderContentRVAdapter.ViewHolder>() {
-    private lateinit var popupMenu: PopupMenu
-
     var chatList = ArrayList<FolderContent>()
-    private val tag = "RV/FOLDER_CONTENT"
+    private lateinit var popupMenu: PopupMenu
 
     // 클릭 인터페이스
     interface MyClickListener {
@@ -43,7 +37,6 @@ class FolderContentRVAdapter(
         return ViewHolder(binding)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(chatList[position])
     }
@@ -64,7 +57,8 @@ class FolderContentRVAdapter(
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(val binding: ItemFolderContentBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(val binding: ItemFolderContentBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         init {
             binding.itemFolderContentLayout.setOnLongClickListener {
                 popupMenu = PopupMenu(
@@ -89,14 +83,7 @@ class FolderContentRVAdapter(
             }
         }
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: FolderContent) {
-            Log.d(tag, "chat.nickName: ${chat.nickname}")
-            Log.d(tag, "chat.message: ${chat.message}")
-            Log.d(tag, "chat.postTime: ${chat.postTime}")
-
-//            val chatList = AppDatabase.getInstance(mContext)!!.chatListDao().getOneChatList(chat.chatIdx)
-
             binding.itemFolderContentMessageTv.maxWidth = (size.x * 0.6f).toInt()
             binding.itemFolderContentMessageTv.minHeight = (size.y * 0.05f).toInt()
 
@@ -107,7 +94,7 @@ class FolderContentRVAdapter(
             )
             else binding.itemFolderContentProfileIv.setImageBitmap(
                 loadBitmap(
-                    chat.profileImgUrl!!,
+                    chat.profileImgUrl,
                     mContext
                 )
             )
@@ -133,7 +120,6 @@ class FolderContentRVAdapter(
     }
 
     @SuppressLint("SimpleDateFormat")
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun convertDate(binding: ItemFolderContentBinding, date: String): String {
         val str: String
         val today = Date()
@@ -144,17 +130,18 @@ class FolderContentRVAdapter(
 //        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
 
         // 오늘이 아니라면 날짜만
-        str = if (dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date == today.date) {
-            val time = SimpleDateFormat("a h:mm")
-            time.format(dateAsDate).toString()
-        } else {
-            // simpleDateFormat은 thread에 안전하지 않습니다.
-            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
-            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
-            // date.format(time_formatter)
-            val time = SimpleDateFormat("a h:mm")
-            time.format(dateAsDate).toString()
-        }
+        str =
+            if (dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date == today.date) {
+                val time = SimpleDateFormat("a h:mm")
+                time.format(dateAsDate).toString()
+            } else {
+                // simpleDateFormat은 thread에 안전하지 않습니다.
+                // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
+                // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
+                // date.format(time_formatter)
+                val time = SimpleDateFormat("a h:mm")
+                time.format(dateAsDate).toString()
+            }
         return str
     }
 

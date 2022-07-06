@@ -1,14 +1,14 @@
-package com.chatsoone.rechat.ui
+package com.chatsoone.rechat.ui.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class LockViewModel : ViewModel() {
+class ChatTypeViewModel : ViewModel() {
     private var _mode = MutableLiveData<Int>()
-    val mode get() = _mode
+    val mode get() = _mode  // 0: 일반, 1: 선택
 
     init {
-        _mode.value = 0 // 0: 패턴 안맞음, 1: 패턴 맞음
+        _mode.value = 0
     }
 
     fun setMode(mode: Int) {

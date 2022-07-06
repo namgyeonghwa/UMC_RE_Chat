@@ -1,5 +1,7 @@
 package com.chatsoone.rechat.ui.pattern;
 
+import static com.chatsoone.rechat.ApplicationClass.ACT;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -29,6 +31,7 @@ public class InputPatternActivity extends AppCompatActivity {
         // 1: 맞, -1: 틀림
         SharedPreferences correctSPF = getSharedPreferences("lock_correct", MODE_PRIVATE);
         SharedPreferences.Editor editor = correctSPF.edit();
+
         // 패턴 모드 확인
         // 0: 숨긴 폴더 목록을 확인하기 위한 입력 모드
         // 1: 메인 화면의 설정창 -> 변경 모드
@@ -36,12 +39,11 @@ public class InputPatternActivity extends AppCompatActivity {
         // 3: 메인 화면 폴더로 보내기 -> 숨김 폴더 눌렀을 경우
         SharedPreferences modeSPF = getSharedPreferences("mode", 0);
         mode = modeSPF.getInt("mode", 0);
-        Log.d("CREATE/MODE", String.valueOf(mode));
+        Log.d(ACT, "INPUTPATTERN/" + String.valueOf(mode));
 
         SharedPreferences preferences = getSharedPreferences("lock", 0);
         patternValue = preferences.getString("pattern", "0");
-        Log.d("INPUT-PATTERN", patternValue);
-
+        Log.d(ACT, "INPUTPATTERN/" + patternValue);
 
         mPatternLockView = (PatternLockView) findViewById(R.id.input_pattern_lock_view);
         mPatternLockView.addPatternLockListener(new PatternLockViewListener() {

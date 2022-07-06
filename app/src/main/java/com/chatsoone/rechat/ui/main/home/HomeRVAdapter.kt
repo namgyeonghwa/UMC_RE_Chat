@@ -9,30 +9,52 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
-import com.chatsoone.rechat.ApplicationClass
 import com.chatsoone.rechat.ApplicationClass.Companion.RV
+import com.chatsoone.rechat.ApplicationClass.Companion.TAG
+import com.chatsoone.rechat.ApplicationClass.Companion.convertDate
 import com.chatsoone.rechat.ApplicationClass.Companion.loadBitmap
 import com.chatsoone.rechat.R
-import com.chatsoone.rechat.data.entity.ChatList
-import com.chatsoone.rechat.data.entity.ChatListViewType
 import com.chatsoone.rechat.data.local.AppDatabase
+import com.chatsoone.rechat.data.remote.ChatList
+import com.chatsoone.rechat.data.remote.ChatListViewType
+import com.chatsoone.rechat.data.remote.chat.ChatService
 import com.chatsoone.rechat.databinding.ItemChatListChooseBinding
 import com.chatsoone.rechat.databinding.ItemChatListDefaultBinding
+import com.chatsoone.rechat.ui.main.folder.MyFolderRVAdapter
+import com.chatsoone.rechat.ui.view.ChatView
 import com.chatsoone.rechat.util.getID
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
 class HomeRVAdapter(
-    private val context: Context,
-    private val mItemClickListener: MyItemClickListener
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private val context: Context
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ChatView {
     private val userID = getID()
-    private var database = AppDatabase.getInstance(context)!!
     private var chatList = ArrayList<ChatList>()
     private var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
+    private val chatService = ChatService()
+
+    // 클릭 인터페이스
+    interface MyItemClickListener {
+        // 기본 모드에서 채팅을 클릭했을 때
+        fun onDefaultChatClick(view: View, position: Int, chat: ChatList)
+
+        // 선택 모드에서 채팅을 클릭했을 때
+        fun onChooseChatClick(itemBinding: ItemChatListChooseBinding, position: Int)
+
+        // 프로필 사진 눌렀을 때 선택 모드로 전환되게끔
+        fun onProfileClick(itemBinding: ItemChatListDefaultBinding, position: Int)
+    }
+
+    // 리스너 객체를 저장하는 변수
+    private lateinit var mItemClickListener: MyItemClickListener
+
+    // 리스너 객체를 외부에서 전달받는 함수
+    fun setMyItemClickListener(itemClickListener: MyItemClickListener) {
+        mItemClickListener = itemClickListener
+    }
 
     // 기본 모드 뷰홀더
     inner class DefaultViewHolder(private val binding: ItemChatListDefaultBinding) :
@@ -56,13 +78,17 @@ class HomeRVAdapter(
             }
         }
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
             if (!isItemSelected(bindingAdapterPosition)) {
                 // 선택된 아이템이 아닌 경우
                 Log.d(RV, "HOME/default/not selected: $bindingAdapterPosition")
                 if (chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null)
-                    binding.itemChatListProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, context))
+                    binding.itemChatListProfileIv.setImageBitmap(
+                        loadBitmap(
+                            chat.profileImg!!,
+                            context
+                        )
+                    )
                 else if (chat.groupName != null || chat.groupName != "null")
                     binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_default)
             } else {
@@ -71,13 +97,13 @@ class HomeRVAdapter(
                 binding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
             }
 
-            binding.itemChatListNameTv.text = chat.nickName
-            binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
+            binding.itemChatListNameTv.text = chat.chatName
+            binding.itemChatListContentTv.text = chat.latestMessage
+            binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
 
-            // 새로 온 채팅인 경우 NEW 표시
-            if (chat.isNew == 1) binding.itemChatListNewCv.visibility = View.VISIBLE
-            else binding.itemChatListNewCv.visibility = View.INVISIBLE
+//            // 새로 온 채팅인 경우 NEW 표시
+//            if (chat.isNew) binding.itemChatListNewCv.visibility = View.VISIBLE
+//            else binding.itemChatListNewCv.visibility = View.INVISIBLE
         }
     }
 
@@ -97,7 +123,6 @@ class HomeRVAdapter(
             }
         }
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(chat: ChatList) {
             if (!isItemSelected(bindingAdapterPosition)) {
                 // 선택되지 않은 아이템인 경우
@@ -113,22 +138,10 @@ class HomeRVAdapter(
                 binding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
             }
 
-            binding.itemChatListNameTv.text = chat.nickName
-            binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
+            binding.itemChatListNameTv.text = chat.chatName
+            binding.itemChatListContentTv.text = chat.latestMessage
+            binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
         }
-    }
-
-    // 클릭 인터페이스
-    interface MyItemClickListener {
-        // 기본 모드에서 채팅을 클릭했을 때
-        fun onDefaultChatClick(view: View, position: Int, chat: ChatList)
-
-        // 선택 모드에서 채팅을 클릭했을 때
-        fun onChooseChatClick(itemBinding: ItemChatListChooseBinding, position: Int)
-
-        // 프로필 사진 눌렀을 때 선택 모드로 전환되게끔
-        fun onProfileClick(itemBinding: ItemChatListDefaultBinding, position: Int)
     }
 
     // 뷰홀더를 생성해줘야 할 때 호출
@@ -156,7 +169,6 @@ class HomeRVAdapter(
     }
 
     // 뷰홀더에 데이터 바인딩 할 때마다 호출
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (chatList[position].viewType) {
             ChatListViewType.DEFAULT -> {
@@ -173,19 +185,13 @@ class HomeRVAdapter(
     }
 
     // 선택된 아이템 삭제
-    @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("NotifyDataSetChanged")
     fun removeSelectedItemList() {
-        val selectedItemList = chatList.filter { chatlist -> chatlist.isChecked }
+        // 체크 안 된 것들로 교체한 후 HomeFragment에는 선택 안 된 것들만 남도록 한다.
+        val checkedItemList = chatList.filter { chatList -> chatList.isChecked }
 
-        for (i in selectedItemList) {
-            if (i.groupName == "null") {
-                // 개인톡일 경우
-                database.chatDao().deleteOneChat(i.chatIdx)
-            } else {
-                // 단체톡일 경우 해당 채팅 이름 가진 데이터 전부 삭제
-                database.chatDao().deleteOrgChat(userID, i.chatIdx)
-            }
+        for (i in checkedItemList) {
+            chatService.deleteChatList(this, userID, i.chatIdx, i.groupName)
         }
         notifyDataSetChanged()
     }
@@ -193,16 +199,11 @@ class HomeRVAdapter(
     // 선택된 아이템 차단
     @SuppressLint("NotifyDataSetChanged")
     fun blockSelectedItemList() {
-        val selectedItemList = chatList.filter { chatlist -> chatlist.isChecked }
+        // 체크 안 된 것들로 교체한 후 HomeFragment에는 선택 안 된 것들만 남도록 한다.
+        val checkedItemList = chatList.filter { chatlist -> chatlist.isChecked }
 
-        for (i in selectedItemList) {
-            if (i.groupName == "null" || i.groupName == null) {
-                // 개인톡일 경우
-                i.nickName?.let { database.chatDao().blockOneChat(userID, it) }
-            } else {
-                // 단체 톡일 경우 chatName인 것들 다 삭제
-                database.chatDao().blockOrgChat(userID, i.groupName!!)
-            }
+        for (i in checkedItemList) {
+            chatService.block(this, userID, i.chatName, i.groupName)
         }
         notifyDataSetChanged()
     }
@@ -211,9 +212,6 @@ class HomeRVAdapter(
     @SuppressLint("NotifyDataSetChanged")
     fun clearSelectedItemList() {
         selectedItemList.clear()
-        // getSelectedItemList() 위해 모두 초기화
-        for(i in chatList)
-            i.isChecked=false
         notifyDataSetChanged()
     }
 
@@ -252,36 +250,6 @@ class HomeRVAdapter(
         notifyDataSetChanged()
     }
 
-//    fun setChecked(position: Int) {
-//        chatList[position].isChecked = !chatList[position].isChecked
-//        Log.d(RV, "HOME/position: $position")
-//        notifyItemChanged(position)
-//    }
-//
-//    fun setDefaultChecked(itemBinding: ItemChatListDefaultBinding, position: Int) {
-//        Log.d(RV, "HOME/setDefaultChecked")
-//
-//        chatList[position].isChecked = !chatList[position].isChecked
-//        if (chatList[position].isChecked) {
-//            Log.d(RV, "HOME/setDefaultChecked/isChecked: ${chatList[position].isChecked}")
-//            itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-//        }
-//
-//        notifyItemChanged(position)
-//    }
-//
-//    fun setChooseChecked(itemBinding: ItemChatListChooseBinding, position: Int) {
-//        Log.d(RV, "HOME/setChooseChecked")
-//
-//        chatList[position].isChecked = !chatList[position].isChecked
-//        if (chatList[position].isChecked) {
-//            Log.d(RV, "HOME/setChooseChecked/isChecked: ${chatList[position].isChecked}")
-//            itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-//        }
-//
-//        notifyItemChanged(position)
-//    }
-
     // 아이템 뷰가 선택되었는지를 알려주는 함수
     private fun isItemSelected(position: Int): Boolean {
         return selectedItemList.get(position, false)
@@ -315,27 +283,11 @@ class HomeRVAdapter(
         return selectedList as ArrayList<ChatList>
     }
 
-    @SuppressLint("SimpleDateFormat")
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun convertDate(date: String): String {
-        val str: String
-        val today = Calendar.getInstance()
+    override fun onChatSuccess() {
+        Log.d(RV, "HOME/onChatSuccess")
+    }
 
-        // 2022-02-13T02:35:37+09:00
-        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        val dateAsDate = simpleDateFormat.parse(date)
-
-        val diffDay = (today.time.time - dateAsDate!!.time) / (60 * 60 * 24 * 1000)
-
-        str = if (diffDay < 0) {
-            // 오늘인 경우
-            val sdf = SimpleDateFormat("a h:m")
-            sdf.format(dateAsDate).toString()
-        } else {
-            val time = SimpleDateFormat("M월 d일")
-            time.format(dateAsDate).toString()
-        }
-
-        return str
+    override fun onChatFailure(code: Int, message: String) {
+        Log.d(RV, "HOME/onChatFailure/code $code, message: $message")
     }
 }

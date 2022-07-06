@@ -1,16 +1,19 @@
-package com.chatsoone.rechat.ui
+package com.chatsoone.rechat.ui.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.chatsoone.rechat.data.entity.Folder
+import com.chatsoone.rechat.R
+import com.chatsoone.rechat.data.remote.FolderList
 import com.chatsoone.rechat.databinding.ItemFolderListBinding
 
 class FolderListRVAdapter(private val mContext: Context) :
     RecyclerView.Adapter<FolderListRVAdapter.ViewHolder>() {
-    private val folderList = ArrayList<Folder>()
+    private val tag = "RV/FOLDER-LIST"
+    private val folderList = ArrayList<FolderList>()
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -41,7 +44,7 @@ class FolderListRVAdapter(private val mContext: Context) :
 
     // RecyclerView에 데이터 연결
     @SuppressLint("NotifyDataSetChanged")
-    fun addFolderList(folderList: ArrayList<Folder>) {
+    fun addFolderList(folderList: ArrayList<FolderList>) {
         this.folderList.clear()
         this.folderList.addAll(folderList)
         notifyDataSetChanged()
@@ -51,9 +54,29 @@ class FolderListRVAdapter(private val mContext: Context) :
 
     inner class ViewHolder(val binding: ItemFolderListBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(folder: Folder) {
+        fun bind(folder: FolderList) {
             binding.itemFolderListTv.text = folder.folderName
-            binding.itemFolderListIv.setImageResource(folder.folderImg!!)
+
+            if (folder.folderImg != null) {
+                val folderImgId = getFolderImgResource(folder.folderImg)
+                if (folderImgId != 0) binding.itemFolderListIv.setImageResource(folderImgId)
+                else binding.itemFolderListIv.setImageResource(R.drawable.folder_bear)  // bear를 default로
+            } else {
+                binding.itemFolderListIv.setImageResource(R.drawable.folder_bear)
+            }
         }
+    }
+
+    private fun getFolderImgResource(folderImgString: String): Int {
+        // res/drawable/파일명.png
+        val folderImgStringArray = folderImgString.split("/", ".")
+        val folderImgName = folderImgStringArray[2]
+        Log.d(tag, "folderImgStringArray: $folderImgStringArray")
+        Log.d(tag, "folderImgName: $folderImgName")
+
+        val folderImgID =
+            mContext.resources.getIdentifier(folderImgName, "drawable", mContext.packageName)
+        Log.d(tag, "folderImgID: $folderImgID")
+        return folderImgID
     }
 }

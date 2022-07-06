@@ -1,9 +1,8 @@
-package com.chatsoone.rechat.ui
+package com.chatsoone.rechat.ui.viewmodel
 
-import android.util.SparseBooleanArray
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.chatsoone.rechat.data.entity.ChatList
+import com.chatsoone.rechat.data.remote.ChatList
 
 class ItemViewModel : ViewModel() {
     private var _selectedItemList = MutableLiveData<ArrayList<ChatList>>()

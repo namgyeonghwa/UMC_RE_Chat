@@ -1,25 +1,22 @@
 package com.chatsoone.rechat.ui.main.blocklist
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass.Companion.loadBitmap
-import com.chatsoone.rechat.data.entity.BlockedChatList
+import com.chatsoone.rechat.data.remote.BlockedChatList
 import com.chatsoone.rechat.databinding.ItemBlockListBinding
-import com.chatsoone.rechat.ui.main.MainActivity
 
 class BlockListRVAdapter(
-    private val mContext: MainActivity,
-    private val blockList: ArrayList<BlockedChatList>,
+    private val mContext: Context,
     private val myClickListener: MyClickListener
 ) : RecyclerView.Adapter<BlockListRVAdapter.ViewHolder>() {
-    var chatList = ArrayList<BlockedChatList>()
-//?
+    var blockList = ArrayList<BlockedChatList>()
+
     interface MyClickListener {
         fun onRemoveItem(blockList: BlockedChatList)
     }
@@ -42,13 +39,13 @@ class BlockListRVAdapter(
 
     // Add Data
     @SuppressLint("NotifyDataSetChanged")
-    fun addItem(block: List<BlockedChatList>) {//차단 목록 업데이트
+    fun addItem(block: List<BlockedChatList>) {
         blockList.clear()
         blockList.addAll(block as ArrayList)
         notifyDataSetChanged()
     }
 
-    private fun removeBlock(position: Int) {//roomdb지우고 ui의 리스트틀 삭제한다.
+    private fun removeBlock(position: Int) {
         blockList.removeAt(position)
         notifyItemRemoved(position)
         notifyItemRangeChanged(position, itemCount);
@@ -57,7 +54,7 @@ class BlockListRVAdapter(
     // 디폴트 뷰홀더
     inner class ViewHolder(val binding: ItemBlockListBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        @RequiresApi(Build.VERSION_CODES.O)
+
         fun bind(block: BlockedChatList) {
             binding.itemBlockCancelIv.setOnClickListener {
                 myClickListener.onRemoveItem(blockList[bindingAdapterPosition])

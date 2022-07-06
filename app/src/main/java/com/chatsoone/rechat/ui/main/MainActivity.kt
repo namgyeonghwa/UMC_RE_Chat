@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.util.TypedValue
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageView
@@ -25,16 +26,22 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chatsoone.rechat.ApplicationClass
 import com.chatsoone.rechat.ApplicationClass.Companion.ACT
 import com.chatsoone.rechat.ApplicationClass.Companion.currentWindowMetricsPointCompat
+import com.chatsoone.rechat.ApplicationClass.Companion.showToast
 import com.chatsoone.rechat.NotificationListener
 import com.chatsoone.rechat.R
-import com.chatsoone.rechat.data.entity.ChatList
-import com.chatsoone.rechat.data.entity.Folder
+import com.chatsoone.rechat.base.BaseActivity
 import com.chatsoone.rechat.data.entity.Icon
 import com.chatsoone.rechat.data.local.AppDatabase
+import com.chatsoone.rechat.data.remote.ChatList
+import com.chatsoone.rechat.data.remote.FolderList
+import com.chatsoone.rechat.data.remote.chat.ChatService
+import com.chatsoone.rechat.data.remote.folder.FolderService
 import com.chatsoone.rechat.databinding.ActivityMainBinding
 import com.chatsoone.rechat.databinding.ItemFolderListBinding
 import com.chatsoone.rechat.databinding.ItemIconBinding
 import com.chatsoone.rechat.ui.*
+import com.chatsoone.rechat.ui.adapter.FolderListRVAdapter
+import com.chatsoone.rechat.ui.adapter.IconRVAdapter
 import com.chatsoone.rechat.ui.explain.ExplainActivity
 import com.chatsoone.rechat.ui.main.blocklist.BlockListFragment
 import com.chatsoone.rechat.ui.main.folder.MyFolderFragment
@@ -43,6 +50,13 @@ import com.chatsoone.rechat.ui.main.home.HomeFragment
 import com.chatsoone.rechat.ui.pattern.CreatePatternActivity
 import com.chatsoone.rechat.ui.pattern.InputPatternActivity
 import com.chatsoone.rechat.ui.setting.PrivacyInfoActivity
+import com.chatsoone.rechat.ui.view.ChatView
+import com.chatsoone.rechat.ui.view.FolderAPIView
+import com.chatsoone.rechat.ui.view.FolderListView
+import com.chatsoone.rechat.ui.view.GetChatListView
+import com.chatsoone.rechat.ui.viewmodel.ChatTypeViewModel
+import com.chatsoone.rechat.ui.viewmodel.ItemViewModel
+import com.chatsoone.rechat.ui.viewmodel.LockViewModel
 import com.chatsoone.rechat.util.getID
 import com.chatsoone.rechat.util.permissionGrantred
 import com.google.android.gms.ads.AdRequest
@@ -51,54 +65,46 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import java.io.ByteArrayOutputStream
 
-class MainActivity : NavigationView.OnNavigationItemSelectedListener,
-    AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate),
+    NavigationView.OnNavigationItemSelectedListener, ChatView, FolderListView, FolderAPIView {
     private lateinit var database: AppDatabase
-    private lateinit var selectedItemList: ArrayList<ChatList>  // chat index
+    private lateinit var selectedItemList: ArrayList<ChatList>
+    private lateinit var mPopupWindow: PopupWindow
+
+    // RecyclerView adapter
     private lateinit var folderListRVAdapter: FolderListRVAdapter
     private lateinit var iconRVAdapter: IconRVAdapter
-    private lateinit var mPopupWindow: PopupWindow
+
+    // Service
+    private lateinit var chatService: ChatService
+    private lateinit var folderService: FolderService
 
     private var userID = getID()
     private var iconList = ArrayList<Icon>()
-    private var folderList = ArrayList<Folder>()
+    private var folderList = ArrayList<FolderList>()
     private var permission: Boolean = true
 
-    private val chatViewModel: ChatViewModel by viewModels<ChatViewModel>()
+    private val chatViewModel: ChatTypeViewModel by viewModels<ChatTypeViewModel>()
     private val selectedItemViewModel: ItemViewModel by viewModels<ItemViewModel>()
     private val lockViewModel: LockViewModel by viewModels()
 
     // 광고
-    lateinit var mAdview: AdView
-    lateinit var adRequest: AdRequest
+    private lateinit var mAdview: AdView
+    private lateinit var adRequest: AdRequest
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun initAfterBinding() {
+        chatService = ChatService()
+        folderService = FolderService()
 
-        database = AppDatabase.getInstance(this)!!
         initIcon()
-        initFolder()
         initChatViewModel()
         initSelectedItemViewModel()
         lockViewModel.setMode(0)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onStart() {
-        super.onStart()
-
-        initAds()
-        initHiddenFolder()
-        initBottomNavigationView()
-        initDrawerLayout()
-        initClickListener()
-    }
-
     // 아이콘 초기화
     private fun initIcon() {
+        database = AppDatabase.getInstance(this)!!
         iconList = database.iconDao().getIconList() as ArrayList
 
         if (iconList.isEmpty()) {
@@ -125,26 +131,19 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
             database.iconDao().insert(Icon(R.drawable.folder_simple_orange))
             database.iconDao().insert(Icon(R.drawable.folder_simple_gray))
             database.iconDao().insert(Icon(R.drawable.folder_simple_more_gray))
-            // database.iconDao().insert(Icon())
-            iconList = database.iconDao().getIconList() as ArrayList
-        }
-    }
 
-    // 폴더 초기화
-    private fun initFolder() {
-        // 폴더 초기 세팅 부분 생략
-        database.folderDao().getFolderList(userID).observe(this) {
-            Log.d(ApplicationClass.ACT, "MAIN/folderList: $folderList")
-            folderList = it as ArrayList<Folder>
+            iconList = database.iconDao().getIconList() as ArrayList
         }
     }
 
     private fun initChatViewModel() {
         // observe mode
         chatViewModel.mode.observe(this) {
-            if (it == 0) setDefaultMode()
-            else if(it == 1) setChooseMode()
-            else setFolderMode()
+            when (it) {
+                0 -> setDefaultMode()
+                1 -> setChooseMode()
+                else -> setFolderMode()
+            }
             Log.d(ACT, "MAIN/mode: $it")
         }
     }
@@ -154,8 +153,6 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
-        Log.d(ACT, "MAIN/changesetDefaultMode")
-
     }
 
     // 선택 모드
@@ -163,7 +160,6 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         binding.mainLayout.mainBnvCenterDefaultIv.visibility = View.GONE
         binding.mainLayout.mainBnvCenterChooseIv.visibility = View.VISIBLE
         binding.mainLayout.mainBnvCenterFolderIv.visibility = View.GONE
-        Log.d(ACT, "MAIN/changeChooseMode")
     }
 
     // 폴더 모드
@@ -180,23 +176,13 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         }
     }
 
-    // 숨긴 폴더 초기화
-    private fun initHiddenFolder() {
-        val spf = getSharedPreferences("lock_correct", 0)
+    override fun onStart() {
+        super.onStart()
 
-        Log.d("mainspfcheck", "spf is ${spf.getInt("correct", 0)}")
-        if (spf.getInt("correct", 0) == 1) {
-            replaceFragment(MyHiddenFolderFragment())
-            Log.d("mainspfcheck", "this is hidden")
-        }
-        else if (spf.getInt("correct", 0) == -1) replaceFragment(MyFolderFragment())
-        else replaceFragment(BlockListFragment())
-    }
-
-    // 프래그먼트 교체
-    private fun replaceFragment(fragment: Fragment) {
-        this.supportFragmentManager.beginTransaction()
-            .replace(R.id.main_frame_layout, fragment).commitAllowingStateLoss()
+        initAds()
+        initBottomNavigationView()
+        initDrawerLayout()
+        initClickListener()
     }
 
     // 광고 초기화
@@ -212,47 +198,40 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         val correctSPF = getSharedPreferences("lock_correct", MODE_PRIVATE)
         // 잠금 모드이면
         if (correctSPF.getInt("correct", 0) == 1) {
-            //binding.mainLayout.mainBnv.selectedItemId=R.id.main_bnv_hidden_folder
-            replaceFragment(MyHiddenFolderFragment())
-        }
-        else{
-            supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.main_frame_layout, HomeFragment())
-                .commitAllowingStateLoss()
+            changeFragmentOnMain(MyHiddenFolderFragment())
+        } else {
+            changeFragmentOnMain(HomeFragment())
         }
 
         binding.mainLayout.mainBnv.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.main_bnv_home -> {
                     // 전체 채팅
-                    val editor=correctSPF.edit()
+                    val editor = correctSPF.edit()
                     editor.putInt("correct", 3) // 임의의 값
                     editor.apply()
 
-                    replaceFragment(HomeFragment())
+                    changeFragmentOnMain(HomeFragment())
                     return@setOnItemSelectedListener true
                 }
 
                 R.id.main_bnv_block_list -> {
                     // 차단 목록
-                    val editor=correctSPF.edit()
+                    val editor = correctSPF.edit()
                     editor.putInt("correct", 3) // 임의의 값
                     editor.apply()
 
-                    replaceFragment(BlockListFragment())
+                    changeFragmentOnMain(BlockListFragment())
                     return@setOnItemSelectedListener true
                 }
 
                 R.id.main_bnv_folder -> {
                     // 보관함
-                    val editor=correctSPF.edit()
+                    val editor = correctSPF.edit()
                     editor.putInt("correct", 3) // 임의의 값
                     editor.apply()
 
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main_frame_layout, MyFolderFragment())
-                        .commitAllowingStateLoss()
+                    changeFragmentOnMain(MyFolderFragment())
 
                     return@setOnItemSelectedListener true
                 }
@@ -295,6 +274,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
 
     private fun initDrawerLayout() {
         binding.mainNavigationView.setNavigationItemSelectedListener(this)
+
         val menuItem = binding.mainNavigationView.menu.findItem(R.id.navi_setting_alarm_item)
         val drawerSwitch =
             menuItem.actionView.findViewById(R.id.main_drawer_alarm_switch) as SwitchCompat
@@ -354,7 +334,7 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
 
         // 선택 모드일 때
         binding.mainLayout.mainBnvCenterChooseIv.setOnClickListener {
-            if(selectedItemList.isNotEmpty()) {
+            if (selectedItemList.isNotEmpty()) {
                 openPopupWindow()
             }
         }
@@ -365,12 +345,33 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         }
     }
 
+    // 폴더 초기화
+    private fun initFolder() {
+        folderListRVAdapter = FolderListRVAdapter(this)
+        folderService.getFolderList(this, userID)
+    }
+
+    // 숨긴 폴더 초기화
+    private fun initHiddenFolder() {
+        val spf = getSharedPreferences("lock_correct", 0)
+        Log.d("mainspfcheck", "spf is ${spf.getInt("correct", 0)}")
+
+        if (spf.getInt("correct", 0) == 1) {
+            changeFragmentOnMain(MyHiddenFolderFragment())
+            Log.d("mainspfcheck", "this is hidden")
+        } else if (spf.getInt("correct", 0) == -1) {
+            changeFragmentOnMain(MyFolderFragment())
+        } else {
+            changeFragmentOnMain(BlockListFragment())
+        }
+    }
+
     // 설정 메뉴 창의 네비게이션 드로어의 아이템들에 대한 이벤트를 처리
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             // 알림 설정
             R.id.navi_setting_alarm_item -> {
-                Toast.makeText(this, "알림 설정", Toast.LENGTH_SHORT).show()
+                showToast(this, "알림 설정")
             }
 
             // 패턴 변경하기
@@ -390,11 +391,9 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 editor.apply()
 
                 if (pattern.equals("0")) {   // 패턴이 설정되어 있지 않은 경우 패턴 설정 페이지로
-                    val intent = Intent(this@MainActivity, CreatePatternActivity::class.java)
-                    startActivity(intent)
+                    startNextActivity(CreatePatternActivity::class.java)
                 } else {    // 패턴이 설정되어 있는 경우 입력 페이지로 (보안을 위해)
-                    val intent = Intent(this@MainActivity, InputPatternActivity::class.java)
-                    startActivity(intent)
+                    startNextActivity(InputPatternActivity::class.java)
                 }
             }
             // 사용 방법 도움말
@@ -404,14 +403,12 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 editor.putInt("explain_from_menu", 1)
                 editor.apply()
 
-                val intent = Intent(this, ExplainActivity::class.java)
-                startActivity(intent)
+                startNextActivity(ExplainActivity::class.java)
             }
 
             // 개인정보 처리방침
             R.id.navi_setting_privacy_item -> {
-                val intent = Intent(this, PrivacyInfoActivity::class.java)
-                startActivity(intent)
+                startNextActivity(PrivacyInfoActivity::class.java)
             }
         }
         return false
@@ -426,8 +423,8 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
 
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val popupView = inflater.inflate(R.layout.popup_window_to_folder, null)
-
         mPopupWindow = PopupWindow(popupView, width, height)
+
         mPopupWindow.animationStyle = R.style.Animation
         mPopupWindow.isFocusable = true
         mPopupWindow.isOutsideTouchable = true
@@ -453,55 +450,21 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 // 이동하고 싶은 폴더/보관함 클릭했을 때 해당 폴더/보관함으로 채팅 이동
                 val selectedFolder = folderList[itemPosition]
 
-                // 숨긴 보관함 같은 경우
-                if (selectedFolder.status == ApplicationClass.HIDDEN) {
-                    val lockSPF = getSharedPreferences("lock", 0)
-                    val pattern = lockSPF.getString("pattern", "0")
+                val folderIdx = folderList[itemPosition].folderIdx
 
-                    // 패턴 모드 확인
-                    // 0: 숨긴 폴더 목록을 확인하기 위한 입력 모드
-                    // 1: 메인 화면의 설정창 -> 변경 모드
-                    // 2: 폴더 화면의 설정창 -> 변경 모드
-                    // 3: 메인 화면 폴더로 보내기 -> 숨김 폴더 눌렀을 경우
-                    val modeSPF = getSharedPreferences("mode", 0)
-                    val editor = modeSPF.edit()
-
-                    // 여기서는 3번 모드
-                    editor.putInt("mode", 3)
-                    editor.apply()
-
-                    if (pattern.equals("0")) {
-                        // 패턴이 설정되어 있지 않은 경우 패턴 설정 페이지로
-                        val intent =
-                            Intent(this@MainActivity, CreatePatternActivity::class.java)
-                        startActivity(intent)
-                    } else {
-                        // 패턴이 설정되어 있는 경우 입력 페이지로 (보안을 위해)
-                        val intent = Intent(this@MainActivity, InputPatternActivity::class.java)
-                        startActivity(intent)
-                    }
-                }
-
-                Log.d(ACT, "MAIN/selectedChatList: $selectedItemList")
-
-                val folderIdx = folderList[itemPosition].idx
-
-                // 갠톡 이동: folderIdx, otherUserIdx
-                // 단톡 이동: folderIdx, userIdx, groupName
                 for (i in selectedItemList) {
-                    if (i.groupName != "null") database.folderContentDao()
-                        .insertOrgChat(i.chatIdx, folderIdx, userID)
-                    else database.folderContentDao().insertOtOChat(folderIdx, i.chatIdx)
+                    chatService.addChatToFolder(
+                        this@MainActivity,
+                        userID,
+                        i.chatIdx,
+                        folderList[itemPosition]
+                    )
                 }
 
                 // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
             }
         })
-
-        database.folderDao().getFolderList(userID).observe(this) {
-            folderListRVAdapter.addFolderList(it as ArrayList<Folder>)
-        }
     }
 
     // 새폴더 이름 설정
@@ -524,16 +487,18 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
         mPopupWindow.setOnDismissListener(PopupWindowDismissListener())
 
         // 입력 완료했을 때 누르는 버튼
-        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_set_name_button).setOnClickListener {
-            // 작성한 폴더 이름을 반영한 새폴더를 만들어준다.
-            val name = mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_set_name_et).text.toString()
+        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_set_name_button)
+            .setOnClickListener {
+                // 작성한 폴더 이름을 반영한 새폴더를 만들어준다.
+                val name =
+                    mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_set_name_et).text.toString()
 
-            // 팝업 윈도우 종료
-            mPopupWindow.dismiss()
+                // 팝업 윈도우 종료
+                mPopupWindow.dismiss()
 
-            // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
-            setFolderIcon(name)
-        }
+                // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
+                setFolderIcon(name)
+            }
         chatViewModel.setMode(2)
     }
 
@@ -561,13 +526,13 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
 
         // RecyclerView 초기화
         iconRVAdapter = IconRVAdapter(iconList)
-        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter = iconRVAdapter
+        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter =
+            iconRVAdapter
 
-        iconRVAdapter.setMyItemClickListener(object: IconRVAdapter.MyItemClickListener {
+        iconRVAdapter.setMyItemClickListener(object : IconRVAdapter.MyItemClickListener {
             // 아이콘을 하나 선택했을 경우
             override fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int) {
                 val selectedIcon = iconList[iconPosition]
-//                val lastIdx = folderList.size
 
                 val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
                 val baos = ByteArrayOutputStream()
@@ -576,13 +541,33 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
                 val iconBitmapAsByte = baos.toByteArray()
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
-                // Bitmap bigPictureBitmap  = BitmapFactory.decodeResource(context.getResources(), R.drawable.i_hero);
-                // 선택한 아이콘과 전달받은 폴더 이름으로 폴더 하나 생성한 후 RoomDB에 적용
-                val newFolder = Folder(userID, name, selectedIcon.iconImage)
-                database = AppDatabase.getInstance(this@MainActivity)!!
-                database.folderDao().insert(newFolder)
+                val newFolderPosition = folderList.size - 1
+                val value = TypedValue()
+                resources.getValue(selectedIcon.iconImage, value, true)
 
-                // 팝업 윈도우 종료
+                if (value.string != null) {
+                    folderService.changeFolderName(
+                        this@MainActivity,
+                        userID,
+                        folderList[newFolderPosition].folderIdx,
+                        FolderList(
+                            folderList[newFolderPosition].folderIdx,
+                            name,
+                            value.string.toString()
+                        )
+                    )
+                    folderService.changeFolderIcon(
+                        this@MainActivity,
+                        userID,
+                        folderList[newFolderPosition].folderIdx,
+                        FolderList(
+                            folderList[newFolderPosition].folderIdx,
+                            name,
+                            value.string.toString()
+                        )
+                    )
+                }
+
                 mPopupWindow.dismiss()
             }
         })
@@ -603,11 +588,39 @@ class MainActivity : NavigationView.OnNavigationItemSelectedListener,
     // 팝업창 닫을 때
     inner class PopupWindowDismissListener() : PopupWindow.OnDismissListener {
         override fun onDismiss() {
-            if(chatViewModel.mode.value==0)
+            if (chatViewModel.mode.value == 0)
                 chatViewModel.setMode(0)    // 혹은 바로 setDefaultMode() 가능
-            else if(chatViewModel.mode.value==2)
+            else if (chatViewModel.mode.value == 2)
                 chatViewModel.setMode(2)
             binding.mainLayout.mainBgV.visibility = View.INVISIBLE
         }
+    }
+
+    override fun onChatSuccess() {
+        Log.d(ACT, "MAIN/onChatSuccess")
+    }
+
+    override fun onChatFailure(code: Int, message: String) {
+        Log.d(ACT, "MAIN/onChatFailure/code: $code, message: $message")
+    }
+
+    override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
+        Log.d(ACT, "MAIN/onFolderListSuccess/folderList: $folderList")
+        this.folderList.clear()
+        this.folderList.addAll(folderList)
+        openPopupWindow()
+    }
+
+    override fun onFolderListFailure(code: Int, message: String) {
+        Log.d(ACT, "MAIN/onFolderListFailure/code: $code, message: $message")
+    }
+
+    override fun onFolderAPISuccess() {
+        Log.d(ACT, "MAIN/onFolderAPISuccess")
+        initFolder()
+    }
+
+    override fun onFolderAPIFailure(code: Int, message: String) {
+        Log.d(ACT, "MAIN/onFolderAPIFailure/code: $code, message: $message")
     }
 }

@@ -1,75 +1,74 @@
 package com.chatsoone.rechat.ui.main.blocklist
 
-import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.chatsoone.rechat.data.entity.BlockedChatList
+import com.chatsoone.rechat.ApplicationClass.Companion.FRAG
+import com.chatsoone.rechat.base.BaseFragment
 import com.chatsoone.rechat.data.local.AppDatabase
+import com.chatsoone.rechat.data.remote.BlockedChatList
+import com.chatsoone.rechat.data.remote.chat.ChatService
 import com.chatsoone.rechat.databinding.FragmentBlockListBinding
-import com.chatsoone.rechat.ui.main.MainActivity
+import com.chatsoone.rechat.ui.view.ChatView
+import com.chatsoone.rechat.ui.view.GetBlockedChatListView
 import com.chatsoone.rechat.util.getID
 
-class BlockListFragment : Fragment() {
-    private lateinit var binding: FragmentBlockListBinding
-    private lateinit var database: AppDatabase
+class BlockListFragment : BaseFragment<FragmentBlockListBinding>(FragmentBlockListBinding::inflate),
+    GetBlockedChatListView, ChatView {
     private lateinit var blockListRVAdapter: BlockListRVAdapter
+    private lateinit var chatService: ChatService
+    lateinit var database: AppDatabase
 
     private val userID = getID()
     private var blockList = ArrayList<BlockedChatList>()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentBlockListBinding.inflate(layoutInflater, container, false)
-        database = AppDatabase.getInstance(requireContext())!!
-//        database = activity?.let { AppDatabase.getInstance(it) }!!
+    override fun initAfterBinding() {
+        chatService = ChatService()
+
         initData()
-        return binding.root
     }
 
     private fun initData() {
-        // 모든 차단된 목록을 가져온다.
-        database.chatDao().getBlockedChatList().observe(viewLifecycleOwner) {
-            // viewLifecycleOwner <-> this
-            blockList.clear()
-            blockList.addAll(it)
-            initRecyclerView(blockList)
-            Log.d("BlockFragment","in data() $blockList")
-        }
-        // 왜 밖으로 빠져나오면 blocklist에는 아무것도 없는 것인지..?
-    }
-
-    private fun initRecyclerView(blockedlist:ArrayList<BlockedChatList>) {
-        Log.d("BlockFragment","in rva() $blockedlist")
-
-        val linearLayoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, true)
-        linearLayoutManager.stackFromEnd = true
-        binding.blockListRecyclerView.layoutManager = linearLayoutManager
-        blockListRVAdapter = BlockListRVAdapter(
-            this.activity as MainActivity,
-            blockedlist,
-            object : BlockListRVAdapter.MyClickListener {
+        blockListRVAdapter =
+            BlockListRVAdapter(requireContext(), object : BlockListRVAdapter.MyClickListener {
                 override fun onRemoveItem(blockList: BlockedChatList) {
-                    Toast.makeText(requireContext(), "차단이 해제되었습니다.", Toast.LENGTH_SHORT)
-                    // 지우기
-                    if (blockList.groupName == null || blockList.groupName == "null") {
-                        // 개인톡
-                        database.chatDao().unblockOneChat(userID, blockList.blockedName)
-                    } else {
-                        // 그룹톡
-                        database.chatDao().unblockOrgChat(userID, blockList.groupName)
-                    }
+                    // 삭제 오류 검토
+                    chatService.unblock(
+                        this@BlockListFragment,
+                        userID,
+                        blockList.blockedName,
+                        blockList.groupName
+                    )
+//                chatService.getBlockedChatList(this@BlockListActivity, userID)
                 }
             })
 
+        chatService.getBlockedChatList(this, userID)
+    }
+
+    private fun initRecyclerView() {
+        blockListRVAdapter.addItem(this.blockList)
+        val linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, true)
+        linearLayoutManager.stackFromEnd = true
+        binding.blockListRecyclerView.layoutManager = linearLayoutManager
         binding.blockListRecyclerView.adapter = blockListRVAdapter
+    }
+
+    override fun onGetBlockedChatListSuccess(blockedChatList: ArrayList<BlockedChatList>) {
+        Log.d(FRAG, "BLOCKLIST/onGetBlockedChatListSuccess/blockedChatList: $blockedChatList")
+        this.blockList.clear()
+        this.blockList.addAll(blockedChatList)
+        initRecyclerView()
+    }
+
+    override fun onGetBlockedChatListFailure(code: Int, message: String) {
+        Log.d(FRAG, "BLOCKLIST/onGetBlockedChatListFailure/code: $code, message: $message")
+    }
+
+    override fun onChatSuccess() {
+        Log.d(FRAG, "BLOCKLIST/onChatSuccess")
+    }
+
+    override fun onChatFailure(code: Int, message: String) {
+        Log.d(FRAG, "BLOCKLIST/onChatFailure/code: $code, message: $message")
     }
 }

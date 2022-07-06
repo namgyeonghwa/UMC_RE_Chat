@@ -1,24 +1,18 @@
 package com.chatsoone.rechat.ui.explain
 
 import android.content.Intent
-import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import com.chatsoone.rechat.ApplicationClass.Companion.mSharedPreferences
 import com.chatsoone.rechat.R
+import com.chatsoone.rechat.base.BaseActivity
 import com.chatsoone.rechat.databinding.ActivityExplainBinding
 import com.chatsoone.rechat.ui.permission.PermissionActivity
 import com.chatsoone.rechat.util.permissionGrantred
 
-class ExplainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityExplainBinding
+class ExplainActivity : BaseActivity<ActivityExplainBinding>(ActivityExplainBinding::inflate) {
     private var isExplain = 0
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityExplainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+    override fun initAfterBinding() {
         initFragment()
         initClickListener()
     }

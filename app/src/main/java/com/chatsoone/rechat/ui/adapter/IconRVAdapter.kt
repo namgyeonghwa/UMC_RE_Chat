@@ -1,4 +1,4 @@
-package com.chatsoone.rechat.ui
+package com.chatsoone.rechat.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -8,6 +8,7 @@ import com.chatsoone.rechat.databinding.ItemIconBinding
 
 class IconRVAdapter(private val iconList: ArrayList<Icon>) :
     RecyclerView.Adapter<IconRVAdapter.ViewHolder>() {
+
     // 클릭 인터페이스
     interface MyItemClickListener {
         fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int)

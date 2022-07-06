@@ -4,83 +4,90 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
+import android.util.TypedValue
 import android.view.*
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.PopupWindow
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
+import com.chatsoone.rechat.ApplicationClass.Companion.FRAG
 import com.chatsoone.rechat.ApplicationClass.Companion.currentWindowMetricsPointCompat
 import com.chatsoone.rechat.R
-import com.chatsoone.rechat.data.entity.Folder
+import com.chatsoone.rechat.base.BaseFragment
 import com.chatsoone.rechat.data.entity.Icon
 import com.chatsoone.rechat.data.local.AppDatabase
+import com.chatsoone.rechat.data.remote.FolderList
+import com.chatsoone.rechat.data.remote.folder.FolderService
 import com.chatsoone.rechat.databinding.FragmentMyFolderBinding
 import com.chatsoone.rechat.databinding.ItemIconBinding
 import com.chatsoone.rechat.databinding.ItemMyFolderBinding
-import com.chatsoone.rechat.ui.ChatViewModel
-import com.chatsoone.rechat.ui.IconRVAdapter
+import com.chatsoone.rechat.ui.adapter.IconRVAdapter
 import com.chatsoone.rechat.ui.chat.FolderContentActivity
+import com.chatsoone.rechat.ui.view.FolderAPIView
+import com.chatsoone.rechat.ui.view.FolderListView
+import com.chatsoone.rechat.ui.viewmodel.ChatTypeViewModel
 import com.chatsoone.rechat.util.getID
 import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 
-class MyFolderFragment : Fragment() {
-    private lateinit var binding: FragmentMyFolderBinding
+class MyFolderFragment : BaseFragment<FragmentMyFolderBinding>(FragmentMyFolderBinding::inflate),
+    FolderListView, FolderAPIView {
     private lateinit var database: AppDatabase
     private lateinit var folderRVAdapter: MyFolderRVAdapter
     private lateinit var iconRVAdapter: IconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
-
-    private val userID = getID()
-    private var folderList = ArrayList<Folder>()
-    private var iconList = ArrayList<Icon>()
-    private val chatViewModel by activityViewModels<ChatViewModel>()
-
-    // popupwindow와 recyclerview 연결을 위해 선언
+    private lateinit var folderService: FolderService
     private lateinit var itemMyFolderBinding: ItemMyFolderBinding
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentMyFolderBinding.inflate(inflater, container, false)
+    private val userID = getID()
+    private var iconList = ArrayList<Icon>()
+    private var folderList = ArrayList<FolderList>()
+    private val chatTypeViewModel by activityViewModels<ChatTypeViewModel>()
+
+    override fun initAfterBinding() {
         database = AppDatabase.getInstance(requireContext())!!
         iconList = database.iconDao().getIconList() as ArrayList
 
-        initRecyclerView()
-        return binding.root
+        folderService = FolderService()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        chatViewModel.setMode(mode = 2)
+        chatTypeViewModel.setMode(mode = 2)
     }
 
+    override fun onResume() {
+        super.onResume()
+        initFolder()
+    }
+
+    // 전체 폴더 목록을 가져온다. (숨긴 폴더 제외)
+    private fun initFolder() {
+        folderRVAdapter = MyFolderRVAdapter(this@MyFolderFragment, requireContext())
+        folderService.getFolderList(this, userID)
+    }
+
+    // RecyclerView 초기화
     private fun initRecyclerView() {
-        folderRVAdapter = MyFolderRVAdapter(this)
+        folderRVAdapter.addFolderList(this.folderList)
         binding.myFolderFolderListRecyclerView.adapter = folderRVAdapter
 
-        // live data 반영
-        database.folderDao().getFolderList(userID).observe(viewLifecycleOwner){
-            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
-        }
-
         // click listener
-        folderRVAdapter.setMyItemClickListener(object: MyFolderRVAdapter.MyItemClickListener {
+        folderRVAdapter.setMyItemClickListener(object : MyFolderRVAdapter.MyItemClickListener {
             // 폴더 이름 롱클릭 시 폴더 이름 변경
-            @RequiresApi(Build.VERSION_CODES.O)
-            override fun onFolderNameLongClick(binding: ItemMyFolderBinding, folderIdx: Int) {
+            override fun onFolderNameLongClick(
+                binding: ItemMyFolderBinding,
+                position: Int,
+                folderIdx: Int
+            ) {
                 itemMyFolderBinding = binding
-                changeFolderName(itemMyFolderBinding, folderIdx)
+                changeFolderName(itemMyFolderBinding, position, folderIdx)
             }
 
             // 폴더 아이콘 클릭 시 해당 폴더로 이동
@@ -98,21 +105,19 @@ class MyFolderFragment : Fragment() {
             }
 
             // 폴더 아이콘 롱클릭 시 팝업 메뉴 뜨도록
-            override fun onFolderLongClick(popupMenu: PopupMenu) {
-                popupMenu.show()
+            override fun onFolderLongClick(mPopupMenu: PopupMenu) {
+                mPopupMenu.show()
             }
 
             // 폴더 삭제하기
             override fun onRemoveFolder(folderIdx: Int) {
-                database.folderDao().deleteFolder(folderIdx)
+                folderService.deleteFolder(this@MyFolderFragment, userID, folderIdx)
             }
 
             // 폴더 숨기기
             @SuppressLint("NotifyDataSetChanged")
             override fun onHideFolder(folderIdx: Int) {
-                // 숨김 폴더 인덱스를 맨 뒤로 넣는 식으로 해서 폴더 리스트 순서를 바꿔줘야 한다. (데이터베이스 안에)
-                database.folderDao().updateFolderHide(folderIdx)
-                // 폴더를 숨긴다. 데이터가 바뀔 것
+                folderService.hideFolder(this@MyFolderFragment, userID, folderIdx)
                 folderRVAdapter.notifyDataSetChanged()
             }
         })
@@ -120,14 +125,15 @@ class MyFolderFragment : Fragment() {
 
     // 이름 바꾸기 팝업 윈도우를 띄워서 폴더 이름을 변경할 수 있도록 해준다.
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
-    fun changeFolderName(itemBinding: ItemMyFolderBinding, folderIdx:Int) {
+    fun changeFolderName(itemBinding: ItemMyFolderBinding, position: Int, folderIdx: Int) {
 
         val size = activity?.windowManager?.currentWindowMetricsPointCompat()
         val width = ((size?.x ?: 0) * 0.8f).toInt()
         val height = ((size?.y ?: 0) * 0.4f).toInt()
 
         // 이름 바꾸기 팝업 윈도우
-        val inflater = activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val inflater =
+            activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val popupView = inflater.inflate(R.layout.popup_window_change_name, null)
         mPopupWindow = PopupWindow(popupView, width, WindowManager.LayoutParams.WRAP_CONTENT)
 
@@ -141,17 +147,29 @@ class MyFolderFragment : Fragment() {
 
         // 기존 폴더 이름을 팝업 윈도우의 EditText에 넘겨준다.
         var text: String = itemBinding.itemMyFolderTv.text.toString()
-        mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_change_name_et).setText(text)
+        mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_change_name_et)
+            .setText(text)
 
         // 입력 완료했을 때 누르는 버튼
-        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_change_name_button).setOnClickListener {
-            text = mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_change_name_et).text.toString()
-            itemBinding.itemMyFolderTv.text = text
-            database.folderDao().updateFolderName(folderIdx, text)
+        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_change_name_button)
+            .setOnClickListener {
+                text =
+                    mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_change_name_et).text.toString()
+                itemBinding.itemMyFolderTv.text = text
 
-            // 팝업 윈도우 종료
-            mPopupWindow.dismiss()
-        }
+                val folderImg = folderList[position].folderImg
+
+                folderService.changeFolderName(
+                    this,
+                    userID,
+                    folderIdx,
+                    FolderList(folderIdx, text, folderImg)
+                )
+
+                mPopupWindow.dismiss()
+
+                binding.myFolderBackgroundView.visibility = View.INVISIBLE
+            }
     }
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
@@ -163,7 +181,8 @@ class MyFolderFragment : Fragment() {
         val height = ((size?.y ?: 0) * 0.6f).toInt()
 
         // 아이콘 바꾸기 팝업 윈도우
-        val inflater = activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val inflater =
+            activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val popupView = inflater.inflate(R.layout.popup_window_change_icon, null)
         mPopupWindow = PopupWindow(popupView, width, height)
 
@@ -172,33 +191,39 @@ class MyFolderFragment : Fragment() {
         mPopupWindow.isFocusable = true
         mPopupWindow.isOutsideTouchable = true
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
-        binding.myFolderBackgroundView.visibility = View.VISIBLE    // 뒷배경 흐려지게
+        binding.myFolderBackgroundView.visibility = View.VISIBLE
         mPopupWindow.setOnDismissListener(PopupWindowDismissListener())
 
         // RecyclerView 초기화
         iconRVAdapter = IconRVAdapter(iconList)
-        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter = iconRVAdapter
+        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter =
+            iconRVAdapter
 
-        iconRVAdapter.setMyItemClickListener(object: IconRVAdapter.MyItemClickListener {
+        iconRVAdapter.setMyItemClickListener(object : IconRVAdapter.MyItemClickListener {
             // 아이콘을 하나 선택했을 경우
-            override fun onIconClick(itemIconBinding: ItemIconBinding, itemPosition: Int) {//해당 파라미터는 아이콘 DB!
+            override fun onIconClick(
+                itemIconBinding: ItemIconBinding,
+                iconPosition: Int
+            ) {//해당 파라미터는 아이콘 DB!
                 // 선택한 아이콘으로 폴더 이미지 변경
-                val selectedIcon = iconList[itemPosition]
+                val selectedIcon = iconList[iconPosition]
                 itemBinding.itemMyFolderIv.setImageResource(selectedIcon.iconImage)
 
-                val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
-                val baos = ByteArrayOutputStream()
-                iconBitmap.compress(Bitmap.CompressFormat.PNG, 70, baos)
+                val value = TypedValue()
+                resources.getValue(selectedIcon.iconImage, value, true)
+                if (value.string != null) {
+                    folderService.changeFolderName(
+                        this@MyFolderFragment,
+                        userID,
+                        folderIdx,
+                        FolderList(
+                            folderIdx,
+                            folderList[position].folderName,
+                            value.string.toString()
+                        )
+                    )
+                }
 
-                val iconBitmapAsByte = baos.toByteArray()
-                val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
-
-                database = AppDatabase.getInstance(requireContext())!!
-
-                // RoomDB 적용
-                database.folderDao().updateFolderIcon(folderIdx, selectedIcon.iconImage)
-
-                // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
             }
         })
@@ -211,7 +236,8 @@ class MyFolderFragment : Fragment() {
         val width = ((size?.x ?: 0) * 0.8f).toInt()
         val height = ((size?.y ?: 0) * 0.4f).toInt()
 
-        val inflater = activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val inflater =
+            activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val popupView = inflater.inflate(R.layout.popup_window_set_folder_name, null)
         mPopupWindow = PopupWindow(popupView, width, WindowManager.LayoutParams.WRAP_CONTENT)
 
@@ -224,16 +250,18 @@ class MyFolderFragment : Fragment() {
         mPopupWindow.setOnDismissListener(PopupWindowDismissListener())
 
         // 입력 완료했을 때 누르는 버튼
-        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_set_name_button).setOnClickListener {
-            // 작성한 폴더 이름을 반영한 새폴더를 만들어준다.
-            val name = mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_set_name_et).text.toString()
+        mPopupWindow.contentView.findViewById<AppCompatButton>(R.id.popup_window_set_name_button)
+            .setOnClickListener {
+                // 작성한 폴더 이름을 반영한 새폴더를 만들어준다.
+                val name =
+                    mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_set_name_et).text.toString()
 
-            // 팝업 윈도우 종료
-            mPopupWindow.dismiss()
+                // 팝업 윈도우 종료
+                mPopupWindow.dismiss()
 
-            // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
-            setFolderIcon(name)
-        }
+                // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
+                setFolderIcon(name)
+            }
     }
 
     // 새폴더 아이콘 설정
@@ -246,7 +274,8 @@ class MyFolderFragment : Fragment() {
         val height = ((size?.y ?: 0) * 0.6f).toInt()
 
         // 아이콘 바꾸기 팝업 윈도우
-        val inflater = activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val inflater =
+            activity?.getSystemService(AppCompatActivity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val popupView = inflater.inflate(R.layout.popup_window_change_icon, null)
         mPopupWindow = PopupWindow(popupView, width, height)
 
@@ -260,13 +289,13 @@ class MyFolderFragment : Fragment() {
 
         // RecyclerView 초기화
         iconRVAdapter = IconRVAdapter(iconList)
-        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter = iconRVAdapter
+        popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter =
+            iconRVAdapter
 
-        iconRVAdapter.setMyItemClickListener(object: IconRVAdapter.MyItemClickListener {
+        iconRVAdapter.setMyItemClickListener(object : IconRVAdapter.MyItemClickListener {
             // 아이콘을 하나 선택했을 경우
-            override fun onIconClick(itemBinding: ItemIconBinding, itemPosition: Int) {
-                val selectedIcon = iconList[itemPosition]
-//                val lastIdx = folderList.size
+            override fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int) {
+                val selectedIcon = iconList[iconPosition]
 
                 val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
                 val baos = ByteArrayOutputStream()
@@ -275,21 +304,61 @@ class MyFolderFragment : Fragment() {
                 val iconBitmapAsByte = baos.toByteArray()
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
-                // Bitmap bigPictureBitmap  = BitmapFactory.decodeResource(context.getResources(), R.drawable.i_hero);
-                // 선택한 아이콘과 전달받은 폴더 이름으로 폴더 하나 생성한 후 RoomDB에 적용
-                val newFolder = Folder(userID, name, selectedIcon.iconImage)
-                database = AppDatabase.getInstance(requireContext())!!
-                database.folderDao().insert(newFolder)
+                val newFolderPosition = folderList.size - 1
+                val value = TypedValue()
+                resources.getValue(selectedIcon.iconImage, value, true)
+                if (value.string != null) {
+                    folderService.changeFolderName(
+                        this@MyFolderFragment,
+                        userID,
+                        folderList[newFolderPosition].folderIdx,
+                        FolderList(
+                            folderList[newFolderPosition].folderIdx,
+                            name,
+                            value.string.toString()
+                        )
+                    )
+                    folderService.changeFolderIcon(
+                        this@MyFolderFragment,
+                        userID,
+                        folderList[newFolderPosition].folderIdx,
+                        FolderList(
+                            folderList[newFolderPosition].folderIdx,
+                            name,
+                            value.string.toString()
+                        )
+                    )
+                }
 
-                // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
             }
         })
     }
 
-    inner class PopupWindowDismissListener(): PopupWindow.OnDismissListener {
+    inner class PopupWindowDismissListener() : PopupWindow.OnDismissListener {
         override fun onDismiss() {
             binding.myFolderBackgroundView.visibility = View.INVISIBLE
         }
+    }
+
+    override fun onFolderAPISuccess() {
+        Log.d(FRAG, "MYFOLDER/onFolderAPISuccess")
+        initFolder()
+    }
+
+    override fun onFolderAPIFailure(code: Int, message: String) {
+        Log.d(FRAG, "MYFOLDER/onFolderAPIFailure/code: $code, message: $message")
+    }
+
+    override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
+        Log.d(FRAG, "MYFOLDER/onFolderListSuccess/folderList: $folderList")
+        this.folderList.clear()
+        this.folderList.addAll(folderList)
+        initRecyclerView()
+    }
+
+    override fun onFolderListFailure(code: Int, message: String) {
+        Log.d(FRAG, "MYFOLDER/onFolderListFailure/code: $code, message: $message")
+        initRecyclerView()
     }
 }

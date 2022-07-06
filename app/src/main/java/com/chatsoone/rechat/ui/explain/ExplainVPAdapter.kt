@@ -8,7 +8,7 @@ class ExplainVPAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun getItemCount(): Int = fragmentList.size
 
-    override fun createFragment(position: Int): Fragment  = fragmentList[position]
+    override fun createFragment(position: Int): Fragment = fragmentList[position]
 
     fun addFragment(fragment: Fragment) {
         // 외부에서 직접 리스트를 접근하지 못하기 때문에 함수 사용

@@ -1,5 +1,7 @@
 package com.chatsoone.rechat.ui.pattern;
 
+import static com.chatsoone.rechat.ApplicationClass.ACT;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -36,22 +38,22 @@ public class CreatePatternActivity extends AppCompatActivity {
         mPatternLockView.addPatternLockListener(new PatternLockViewListener() {
             @Override
             public void onStarted() {
-                Log.d(getClass().getName(), "Pattern drawing started");
+                Log.d(ACT, "CREATEPATTERN/Pattern drawing started");
             }
 
             @Override
             public void onProgress(List<PatternLockView.Dot> progressPattern) {
-                Log.d(getClass().getName(), "Pattern progress: " + PatternLockUtils.patternToString(mPatternLockView, progressPattern));
+                Log.d(ACT, "CREATEPATTERN/Pattern progress: " + PatternLockUtils.patternToString(mPatternLockView, progressPattern));
             }
 
             @Override
             public void onComplete(List<PatternLockView.Dot> pattern) {
-                Log.d(getClass().getName(), "Pattern complete: " + PatternLockUtils.patternToString(mPatternLockView, pattern));
+                Log.d(ACT, "CREATEPATTERN/Pattern complete: " + PatternLockUtils.patternToString(mPatternLockView, pattern));
                 SharedPreferences lockSPF = getSharedPreferences("lock", 0);
                 SharedPreferences.Editor editor = lockSPF.edit();
                 editor.putString("pattern", PatternLockUtils.patternToString(mPatternLockView, pattern));
                 editor.apply();
-                Log.d("CREATE-PATTERN", PatternLockUtils.patternToString(mPatternLockView, pattern));
+                Log.d(ACT, "CREATEPATTERN/" + PatternLockUtils.patternToString(mPatternLockView, pattern));
 
                 if (mode == 0) { // 입력 모드로 가면 된다.
                     Intent intent = new Intent(getApplicationContext(), InputPatternActivity.class);
@@ -74,7 +76,7 @@ public class CreatePatternActivity extends AppCompatActivity {
 
             @Override
             public void onCleared() {
-                Log.d(getClass().getName(), "Pattern has been cleared");
+                Log.d(ACT, "CREATEPATTERN/Pattern has been cleared");
             }
         });
     }

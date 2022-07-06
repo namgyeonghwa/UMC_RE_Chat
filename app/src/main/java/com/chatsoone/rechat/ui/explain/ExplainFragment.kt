@@ -1,25 +1,14 @@
 package com.chatsoone.rechat.ui.explain
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import com.chatsoone.rechat.R
+import com.chatsoone.rechat.base.BaseFragment
 import com.chatsoone.rechat.databinding.FragmentExplainBinding
 
-class ExplainFragment : Fragment() {
-    private lateinit var binding: FragmentExplainBinding
+class ExplainFragment : BaseFragment<FragmentExplainBinding>(FragmentExplainBinding::inflate) {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentExplainBinding.inflate(inflater, container, false)
+    override fun initAfterBinding() {
         initViewPager()
-        return binding.root
     }
 
     private fun initViewPager() {
@@ -35,9 +24,6 @@ class ExplainFragment : Fragment() {
         explainAdapter.addFragment(ExplainInFragment(R.drawable.expain_07))
         explainAdapter.addFragment(ExplainInFragment(R.drawable.explain_08))
         explainAdapter.addFragment(ExplainInFragment(R.drawable.expain_09))
-//        explainAdapter.addFragment(Explain1Fragment(R.drawable.background))
-//        explainAdapter.addFragment(Explain1Fragment(R.drawable.background2))
-//        explainAdapter.addFragment(Explain1Fragment(R.drawable.chatsoon01))
 
         binding.explainVp.adapter = explainAdapter
         binding.explainVp.orientation = ViewPager2.ORIENTATION_HORIZONTAL

@@ -1,72 +1,60 @@
 package com.chatsoone.rechat.ui.main.home
 
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
-import android.util.SparseBooleanArray
 import android.view.*
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.chatsoone.rechat.ApplicationClass
 import com.chatsoone.rechat.ApplicationClass.Companion.FRAG
-import com.chatsoone.rechat.ApplicationClass.Companion.currentWindowMetricsPointCompat
+import com.chatsoone.rechat.ApplicationClass.Companion.showToast
 import com.chatsoone.rechat.R
-import com.chatsoone.rechat.data.entity.ChatList
-import com.chatsoone.rechat.data.entity.Folder
+import com.chatsoone.rechat.base.BaseFragment
 import com.chatsoone.rechat.data.entity.Icon
 import com.chatsoone.rechat.data.local.AppDatabase
+import com.chatsoone.rechat.data.remote.ChatList
+import com.chatsoone.rechat.data.remote.FolderList
+import com.chatsoone.rechat.data.remote.chat.ChatService
 import com.chatsoone.rechat.databinding.*
-import com.chatsoone.rechat.ui.ChatViewModel
-import com.chatsoone.rechat.ui.FolderListRVAdapter
-import com.chatsoone.rechat.ui.ItemViewModel
+import com.chatsoone.rechat.ui.adapter.FolderListRVAdapter
+import com.chatsoone.rechat.ui.viewmodel.ItemViewModel
 import com.chatsoone.rechat.ui.chat.ChatActivity
 import com.chatsoone.rechat.ui.main.MainActivity
-import com.chatsoone.rechat.ui.pattern.CreatePatternActivity
-import com.chatsoone.rechat.ui.pattern.InputPatternActivity
+import com.chatsoone.rechat.ui.view.ChatView
+import com.chatsoone.rechat.ui.view.GetChatListView
+import com.chatsoone.rechat.ui.viewmodel.ChatTypeViewModel
 import com.chatsoone.rechat.util.getID
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import java.util.zip.Inflater
 
-class HomeFragment : Fragment(), LifecycleObserver {
-    private lateinit var binding: FragmentHomeBinding
+class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::inflate),
+    GetChatListView, ChatView, LifecycleObserver {
     private lateinit var database: AppDatabase
+
+    // RecyclerView adapter
     private lateinit var homeRVAdapter: HomeRVAdapter
-    private lateinit var folderListRVAdapter: FolderListRVAdapter
-    private lateinit var mPopupWindow: PopupWindow
+
+    // Service
+    private lateinit var chatService: ChatService
 
     private val userID = getID()
-    private var iconList = ArrayList<Icon>()
-    private var folderList = ArrayList<Folder>()
     private var chatList = ArrayList<ChatList>()
-    private val chatViewModel by activityViewModels<ChatViewModel>()
+    private val chatViewModel by activityViewModels<ChatTypeViewModel>()
     private val selectedItemViewModel by activityViewModels<ItemViewModel>()
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentHomeBinding.inflate(inflater, container, false)
+
+    override fun initAfterBinding() {
         database = AppDatabase.getInstance(requireContext())!!
-        folderListRVAdapter = FolderListRVAdapter(requireContext())
+        chatService = ChatService()
 
         initRecyclerView()
         initClickListener()
-        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -81,105 +69,78 @@ class HomeFragment : Fragment(), LifecycleObserver {
 
             if (it == 0) {
                 setDefaultMode()
-            }
-            else setChooseMode()
+            } else setChooseMode()
 
             Log.d(FRAG, "HOME/mode: $it")
         })
+    }
 
-        // observe chat
-        database.chatDao().getRecentChat(userID).observe(viewLifecycleOwner, Observer {
-            Log.d(ApplicationClass.FRAG, "HOME/getRecentChat: $it")
-            homeRVAdapter.addItem(it)
-            chatList.clear()
-            chatList.addAll(it)
-            binding.homeRecyclerView.scrollToPosition(homeRVAdapter.itemCount - 1)
-        })
+    override fun onResume() {
+        super.onResume()
+        initChatList()
+    }
 
-        // live data 반영 (폴더/보관함 목록)
-        database.folderDao().getFolderList(userID).observe(viewLifecycleOwner) {
-            folderList.addAll(it)
-            folderListRVAdapter.addFolderList(folderList)
-        }
+    private fun initChatList() {
+        homeRVAdapter = HomeRVAdapter(requireContext())
+        chatService.getChatList(this, userID)
     }
 
     // recycler view 초기화
     private fun initRecyclerView() {
+        homeRVAdapter.addItem(this.chatList)
+        binding.homeRecyclerView.adapter = homeRVAdapter
+
+        homeRVAdapter.setMyItemClickListener(object : HomeRVAdapter.MyItemClickListener {
+            override fun onDefaultChatClick(view: View, position: Int, chat: ChatList) {
+//                checkNewChat(position)
+
+                val spf =
+                    requireContext().getSharedPreferences("all_chat", Context.MODE_PRIVATE)
+                val editor = spf.edit()
+                editor.putInt("all_chat", 1)
+                editor.apply()
+
+                // ChatActivity로 데이터 전달
+                val intent = Intent(activity as MainActivity, ChatActivity::class.java)
+                intent.putExtra("chatListJson", chat)
+                startActivity(intent)
+            }
+
+            override fun onChooseChatClick(itemBinding: ItemChatListChooseBinding, position: Int) {
+                selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
+                if (homeRVAdapter.getSelectedItem().size == 0) chatViewModel.setMode(0)
+            }
+
+            override fun onProfileClick(itemBinding: ItemChatListDefaultBinding, position: Int) {
+                chatViewModel.setMode(1)
+                selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
+            }
+
+        })
+
         val linearLayoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, true)
         linearLayoutManager.stackFromEnd = true
         binding.homeRecyclerView.layoutManager = linearLayoutManager
-
-        homeRVAdapter = HomeRVAdapter(
-            this.activity as MainActivity,
-            object : HomeRVAdapter.MyItemClickListener {
-                // 기본 모드 (클릭 시 ChatActivity로 이동)
-                override fun onDefaultChatClick(view: View, position: Int, chat: ChatList) {
-                    checkNewChat(position)
-
-                    val spf =
-                        requireContext().getSharedPreferences("all_chat", Context.MODE_PRIVATE)
-                    val editor = spf.edit()
-                    editor.putInt("all_chat", 1)
-                    editor.apply()
-
-                    // ChatActivity로 데이터 전달
-                    val intent = Intent(activity as MainActivity, ChatActivity::class.java)
-                    intent.putExtra("chatListJson", chat)
-                    startActivity(intent)
-                }
-
-                // 선택 모드로 전환되게끔 (default에서 프로필 클릭 시 선택 모드로 전환)
-                override fun onProfileClick(
-                    itemBinding: ItemChatListDefaultBinding,
-                    position: Int
-                ) {
-                    chatViewModel.setMode(1)
-//                    itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-//                    homeRVAdapter.setChecked(position)
-//                    homeRVAdapter.setDefaultChecked(itemBinding, position)
-                    selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
-                }
-
-                // 선택 모드 (클릭 시 프로필 변경 & 선택한 뷰 리스트에 넣어주기)
-                override fun onChooseChatClick(
-                    itemBinding: ItemChatListChooseBinding,
-                    position: Int
-                ) {
-//                    itemBinding.itemChatListProfileIv.setImageResource(R.drawable.ic_check_circle)
-//                    homeRVAdapter.setChecked(position)
-//                    homeRVAdapter.setChooseChecked(itemBinding, position)
-                    selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
-                    if(homeRVAdapter.getSelectedItem().size==0)
-                        chatViewModel.setMode(0)
-
-                }
-            })
-
-        binding.homeRecyclerView.adapter = homeRVAdapter
     }
 
     // 새로 온 채팅을 확인했을 때
     private fun checkNewChat(position: Int) {
-        database.chatDao().updateIsNew(chatList[position].chatIdx, 0)
-        database.chatListDao().updateIsNew(chatList[position].chatIdx, 0)
+        // API 추가하는 건 어떨지
     }
 
     // 기본 모드 세팅
     private fun setDefaultMode() {
-
         homeRVAdapter.clearSelectedItemList()
         selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
-
-        binding.homeTitleTv.visibility=View.VISIBLE
-        binding.homeSettingIv.visibility=View.GONE
+        binding.homeTitleTv.visibility = View.VISIBLE
+        binding.homeSettingIv.visibility = View.GONE
         binding.homeLayout.setBackgroundColor(Color.parseColor("#B9E3FB"))
     }
 
     // 선택 모드 세팅
     private fun setChooseMode() {
         selectedItemViewModel.setSelectedItemList(homeRVAdapter.getSelectedItem())
-
         binding.homeTitleTv.visibility = View.VISIBLE // 디자인에 따라 변경
         binding.homeSettingIv.visibility = View.VISIBLE
         binding.homeLayout.setBackgroundColor(Color.parseColor("#B9E3FB"))
@@ -196,8 +157,8 @@ class HomeFragment : Fragment(), LifecycleObserver {
     }
 
     // Bottom dialog 보여주기
-    private fun showDialog(){
-        val dialog=Dialog(requireContext())
+    private fun showDialog() {
+        val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(R.layout.fragment_bottom_dialog)
 
@@ -208,14 +169,19 @@ class HomeFragment : Fragment(), LifecycleObserver {
             Toast.makeText(requireContext(), "삭제되었습니다.", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
         }
+
         // 차단 누를시
         dialog.findViewById<TextView>(R.id.bottom_dialog_block_tv).setOnClickListener {
             val selectedChatList = homeRVAdapter.getSelectedItem()
+
             for (i in selectedChatList) {
-                if (i.groupName != "null") i.groupName?.let { it1 ->
-                    database.chatDao().blockOrgChat(userID, it1)
+                if (i.groupName != "null") {
+                    // 그룹
+                    i.groupName?.let { it1 -> chatService.block(this, userID, it1, it1) }
+                } else {
+                    // 개인
+                    chatService.block(this, userID, i.chatName, null)
                 }
-                else database.chatDao().blockOneChat(userID, i.groupName!!)
             }
 
             homeRVAdapter.blockSelectedItemList()
@@ -229,10 +195,36 @@ class HomeFragment : Fragment(), LifecycleObserver {
             dialog.dismiss()
         }
         dialog.show()
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window?.attributes?.windowAnimations=R.style.DialogAnimation
+        dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setGravity(Gravity.BOTTOM)
 
+    }
+
+    override fun onChatSuccess() {
+        Log.d(FRAG, "HOME/onChatSuccess")
+        initChatList()
+    }
+
+    override fun onChatFailure(code: Int, message: String) {
+        Log.d(FRAG, "HOME/onGetChatListFailure/code: $code, message: $message")
+    }
+
+    override fun onGetChatListSuccess(chatList: ArrayList<ChatList>) {
+        Log.d(FRAG, "HOME/onGetChatListSuccess/chatList: $chatList")
+        this.chatList.clear()
+        this.chatList = chatList
+        initRecyclerView()
+    }
+
+    override fun onGetChatListFailure(code: Int, message: String) {
+        Log.d(FRAG, "HOME/onGetChatListFailure/code: $code, message: $message")
+        initRecyclerView()
+
+        if (code == 400) showToast(requireContext(), "네트워크 오류");
     }
 }
